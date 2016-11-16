@@ -85,9 +85,29 @@ typeDefinition = do
   spaces
   name <- typeName
   spaces
+  args <- option [] $ parens typeArgs
+  spaces
   types <- braces typeTypes
   spaces
   return $ TypeDefinition name types
+
+typeArgs :: Parser [(String, GraphQLType)]
+typeArgs = do
+  spaces
+  args <- sepEndBy1 typeArg (spaces >> (char ',') >> spaces)
+  spaces
+  return $ args
+
+typeArg :: Parser (String, GraphQLType)
+typeArg = do
+  spaces
+  name <- memberName
+  spaces
+  char ':'
+  spaces
+  gtype <- graphQlType
+  spaces
+  return $ (name, gtype)
 
 typeTypes :: Parser [(String, GraphQLType, Bool)]
 typeTypes = do
@@ -161,3 +181,6 @@ braces =
 
 brackets =
   between (char '[') (char ']')
+
+parens =
+  between (char '(') (char ')')
