@@ -19,12 +19,15 @@ readSchema input = case (parse (graphQLStatements) "GraphQL Schema" input) of
       "Scalar! name=" ++ name
     (TypeDefinition name ifname _):rest ->
       "Type! name=" ++ name ++ " ifname=" ++ ifname
+    (UnionDefinition name _):rest ->
+      "Union! name=" ++ name
 
 data GraphQLStatement
   = EnumDefinition String [String]
   | InterfaceDefinition String [(String, [(String, GraphQLType)], GraphQLType, Bool)]
   | ScalarDefinition String
   | TypeDefinition String String [(String, [(String, GraphQLType)], GraphQLType, Bool)]
+  | UnionDefinition String [String]
 
 data GraphQLType
   = GraphQLTypeBoolean
@@ -37,7 +40,7 @@ data GraphQLType
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = do
   spaces
-  statements <- many $ enumDefinition <|> interfaceDefinition <|> scalarDefinition <|> typeDefinition
+  statements <- many $ enumDefinition <|> interfaceDefinition <|> scalarDefinition <|> typeDefinition <|> unionDefinition
   spaces
   return $ statements
 
@@ -148,9 +151,40 @@ typeType = do
   spaces
   gtype <- graphQlType
   spaces
-  nonnull <- option False $ (do { char '!'; return True })
+  nonnull <- option False $ do
+    char '!'
+    return True
   spaces
   return $ (name, args, gtype, nonnull)
+
+-- Union
+
+unionDefinition :: Parser GraphQLStatement
+unionDefinition = do
+  spaces
+  string "union"
+  spaces
+  name <- typeName
+  spaces
+  char '='
+  spaces
+  utypes <- unionTypes
+  spaces
+  return $ UnionDefinition name utypes
+
+unionTypes :: Parser [String]
+unionTypes = do
+  spaces
+  utypes <- sepBy1 unionType (char '|')
+  spaces
+  return utypes
+
+unionType :: Parser String
+unionType = do
+  spaces
+  utype <- typeName
+  spaces
+  return utype
 
 -- Common
 
