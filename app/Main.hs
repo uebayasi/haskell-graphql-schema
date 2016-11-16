@@ -28,6 +28,7 @@ data GraphQLStatement
 data GraphQLType
   = GraphQLTypeBoolean
   | GraphQLTypeFloat
+  | GraphQLTypeList GraphQLType
   | GraphQLTypeInt
   | GraphQLTypeString
 
@@ -122,27 +123,35 @@ memberName = do
   return $ first:rest
 
 graphQlType :: Parser GraphQLType
-graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeString
+graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString
 
 graphQlTypeBoolean :: Parser GraphQLType
 graphQlTypeBoolean = do
   string "Boolean"
-  return GraphQLTypeBoolean
+  return $ GraphQLTypeBoolean
 
 graphQlTypeFloat :: Parser GraphQLType
 graphQlTypeFloat = do
   string "Float"
-  return GraphQLTypeFloat
+  return $ GraphQLTypeFloat
 
 graphQlTypeInt :: Parser GraphQLType
 graphQlTypeInt = do
   string "Int"
-  return GraphQLTypeInt
+  return $ GraphQLTypeInt
+
+graphQlTypeList :: Parser GraphQLType
+graphQlTypeList = do
+  elem <- brackets graphQlType
+  return $ GraphQLTypeList elem
 
 graphQlTypeString :: Parser GraphQLType
 graphQlTypeString = do
   string "String"
-  return GraphQLTypeString
+  return $ GraphQLTypeString
 
 braces =
   between (char '{') (char '}')
+
+brackets =
+  between (char '[') (char ']')
