@@ -23,7 +23,7 @@ readSchema input = case (parse (graphQLStatements) "GraphQL Schema" input) of
 data GraphQLStatement
   = EnumDefinition String [String]
   | ScalarDefinition String
-  | TypeDefinition String [(String, GraphQLType)]
+  | TypeDefinition String [(String, GraphQLType, Bool)]
 
 data GraphQLType
   = GraphQLTypeBoolean
@@ -87,14 +87,14 @@ typeDefinition = do
   spaces
   return $ TypeDefinition name types
 
-typeTypes :: Parser [(String, GraphQLType)]
+typeTypes :: Parser [(String, GraphQLType, Bool)]
 typeTypes = do
   spaces
   types <- sepEndBy1 typeType spaces
   spaces
   return $ types
 
-typeType :: Parser (String, GraphQLType)
+typeType :: Parser (String, GraphQLType, Bool)
 typeType = do
   spaces
   name <- memberName
@@ -103,7 +103,9 @@ typeType = do
   spaces
   gtype <- graphQlType
   spaces
-  return $ (name, gtype)
+  nonnull <- option False $ (do { char '!'; return True })
+  spaces
+  return $ (name, gtype, nonnull)
 
 -- Common
 
@@ -120,9 +122,7 @@ memberName = do
   return $ first:rest
 
 graphQlType :: Parser GraphQLType
-graphQlType = do
-  gtype <- graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeString
-  return gtype
+graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeString
 
 graphQlTypeBoolean :: Parser GraphQLType
 graphQlTypeBoolean = do
