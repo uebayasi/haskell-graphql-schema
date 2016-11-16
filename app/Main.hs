@@ -22,6 +22,7 @@ readSchema input = case (parse (graphQLStatements) "GraphQL Schema" input) of
 
 data GraphQLStatement
   = EnumDefinition String [String]
+  | InterfaceDefinition String [(String, GraphQLType, Bool)]
   | ScalarDefinition String
   | TypeDefinition String [(String, GraphQLType, Bool)]
 
@@ -36,7 +37,7 @@ data GraphQLType
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = do
   spaces
-  statements <- many $ enumDefinition <|> scalarDefinition <|> typeDefinition
+  statements <- many $ enumDefinition <|> interfaceDefinition <|> scalarDefinition <|> typeDefinition
   spaces
   return $ statements
 
@@ -62,6 +63,21 @@ enumSymbols = do
   symbols <- sepEndBy1 (many1 upper) spaces
   spaces
   return $ symbols
+
+-- Interface
+
+interfaceDefinition :: Parser GraphQLStatement
+interfaceDefinition = do
+  spaces
+  string "interface"
+  spaces
+  name <- typeName
+  spaces
+  args <- option [] $ parens typeArgs
+  spaces
+  types <- braces typeTypes
+  spaces
+  return $ InterfaceDefinition name types
 
 -- Scalar
 
