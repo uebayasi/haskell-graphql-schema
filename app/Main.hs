@@ -26,7 +26,9 @@ data GraphQLStatement
   | TypeDefinition String [(String, GraphQLType)]
 
 data GraphQLType
-  = GraphQLTypeInt
+  = GraphQLTypeBoolean
+  | GraphQLTypeFloat
+  | GraphQLTypeInt
   | GraphQLTypeString
 
 graphQLStatements :: Parser [GraphQLStatement]
@@ -119,8 +121,23 @@ memberName = do
 
 graphQlType :: Parser GraphQLType
 graphQlType = do
-  gtype <- graphQlTypeString
+  gtype <- graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeString
   return gtype
+
+graphQlTypeBoolean :: Parser GraphQLType
+graphQlTypeBoolean = do
+  string "Boolean"
+  return GraphQLTypeBoolean
+
+graphQlTypeFloat :: Parser GraphQLType
+graphQlTypeFloat = do
+  string "Float"
+  return GraphQLTypeFloat
+
+graphQlTypeInt :: Parser GraphQLType
+graphQlTypeInt = do
+  string "Int"
+  return GraphQLTypeInt
 
 graphQlTypeString :: Parser GraphQLType
 graphQlTypeString = do
