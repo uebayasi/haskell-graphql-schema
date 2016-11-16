@@ -31,6 +31,7 @@ data GraphQLType
   | GraphQLTypeList GraphQLType
   | GraphQLTypeInt
   | GraphQLTypeString
+  | GraphQLTypeUser String
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = do
@@ -123,7 +124,7 @@ memberName = do
   return $ first:rest
 
 graphQlType :: Parser GraphQLType
-graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString
+graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString <|> graphQlTypeUser
 
 graphQlTypeBoolean :: Parser GraphQLType
 graphQlTypeBoolean = do
@@ -149,6 +150,11 @@ graphQlTypeString :: Parser GraphQLType
 graphQlTypeString = do
   string "String"
   return $ GraphQLTypeString
+
+graphQlTypeUser :: Parser GraphQLType
+graphQlTypeUser = do
+  name <- typeName
+  return $ GraphQLTypeUser name
 
 braces =
   between (char '{') (char '}')
