@@ -17,14 +17,14 @@ readSchema input = case (parse (graphQLStatements) "GraphQL Schema" input) of
       "Enum! name=" ++ name
     (ScalarDefinition name):rest ->
       "Scalar! name=" ++ name
-    (TypeDefinition name _):rest ->
-      "Type! name=" ++ name
+    (TypeDefinition name ifname _):rest ->
+      "Type! name=" ++ name ++ " ifname=" ++ ifname
 
 data GraphQLStatement
   = EnumDefinition String [String]
-  | InterfaceDefinition String [(String, GraphQLType, Bool)]
+  | InterfaceDefinition String [(String, [(String, GraphQLType)], GraphQLType, Bool)]
   | ScalarDefinition String
-  | TypeDefinition String [(String, GraphQLType, Bool)]
+  | TypeDefinition String String [(String, [(String, GraphQLType)], GraphQLType, Bool)]
 
 data GraphQLType
   = GraphQLTypeBoolean
@@ -101,11 +101,16 @@ typeDefinition = do
   spaces
   name <- typeName
   spaces
-  args <- option [] $ parens typeArgs
+  ifname <- option [] $ do
+    string "implements"
+    spaces
+    ifname <- typeName
+    spaces
+    return ifname
   spaces
   types <- braces typeTypes
   spaces
-  return $ TypeDefinition name types
+  return $ TypeDefinition name ifname types
 
 typeArgs :: Parser [(String, GraphQLType)]
 typeArgs = do
@@ -125,17 +130,19 @@ typeArg = do
   spaces
   return $ (name, gtype)
 
-typeTypes :: Parser [(String, GraphQLType, Bool)]
+typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
 typeTypes = do
   spaces
   types <- sepEndBy1 typeType spaces
   spaces
   return $ types
 
-typeType :: Parser (String, GraphQLType, Bool)
+typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
 typeType = do
   spaces
   name <- memberName
+  spaces
+  args <- option [] $ parens typeArgs
   spaces
   char ':'
   spaces
@@ -143,7 +150,7 @@ typeType = do
   spaces
   nonnull <- option False $ (do { char '!'; return True })
   spaces
-  return $ (name, gtype, nonnull)
+  return $ (name, args, gtype, nonnull)
 
 -- Common
 
