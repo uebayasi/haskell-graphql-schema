@@ -8,11 +8,11 @@ module Data.GraphQL.Schema
 import           Text.ParserCombinators.Parsec
 
 data GraphQLStatement
-  = EnumDefinition GraphQLTypeName GraphQLEnumNames
-  | InterfaceDefinition GraphQLTypeName GraphQLObjectArguments
-  | ObjectDefinition GraphQLTypeName GraphQLTypeName GraphQLObjectArguments
-  | ScalarDefinition GraphQLTypeName
-  | UnionDefinition GraphQLTypeName GraphQLTypeNames
+  = EnumDefinition GraphQLName GraphQLEnumNames
+  | InterfaceDefinition GraphQLName GraphQLObjectArguments
+  | ObjectDefinition GraphQLName (Maybe GraphQLName) GraphQLObjectArguments
+  | ScalarDefinition GraphQLName
+  | UnionDefinition GraphQLName GraphQLTypeNames
 
 data GraphQLType
   = GraphQLBoolean
@@ -20,14 +20,14 @@ data GraphQLType
   | GraphQLList GraphQLType
   | GraphQLInt
   | GraphQLString
-  | GraphQLUserType GraphQLTypeName
+  | GraphQLUserType GraphQLName
 
 data GraphQLName
   = GraphQLEnumName String
   | GraphQLSymbolName String
+  | GraphQLTypeName String
 
-type GraphQLTypeName = String
-type GraphQLTypeNames = [GraphQLTypeName]
+type GraphQLTypeNames = [GraphQLName]
 type GraphQLEnumNames = [GraphQLName]
 type GraphQLArgument = (GraphQLName, GraphQLType)
 type GraphQLArguments = [GraphQLArgument]
@@ -61,7 +61,7 @@ interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> itypes
   where
     name = keyword "interface" *> typeName
-    args = option [] $ parens objectArgs
+    args = option [] (parens objectArgs)
     itypes = braces objectTypes
 
 -- Object
@@ -70,7 +70,7 @@ objectDefinition :: Parser GraphQLStatement
 objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
   where
     name = keyword "type" *> typeName
-    ifname = option [] $ keyword "implements" *> typeName
+    ifname = option Nothing (Just <$> (keyword "implements" *> typeName))
     otypes = braces objectTypes
 
 objectArgs :: Parser GraphQLArguments
@@ -88,9 +88,9 @@ objectType :: Parser GraphQLObjectArgument
 objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
   where
     name = symbolName
-    args = option [] $ parens objectArgs
+    args = option [] (parens objectArgs)
     otype = delim ':' *> graphQlTypeName
-    nonnull = option False $ delim '!' *> pure True
+    nonnull = option False (delim '!' *> pure True)
 
 -- Scalar
 
@@ -109,9 +109,16 @@ unionDefinition = UnionDefinition <$> name <*> utypes
 
 -- Common
 
+typeName :: Parser GraphQLName
 typeName = spaces *> typeNameP <* spaces
+
+symbolName :: Parser GraphQLName
 symbolName = spaces *> symbolNameP <* spaces
+
+enumName :: Parser GraphQLName
 enumName = spaces *> enumNameP <* spaces
+
+graphQlTypeName :: Parser GraphQLType
 graphQlTypeName = spaces *> graphQlTypeP <* spaces
 
 statements :: Parser a -> Parser [a]
@@ -134,8 +141,8 @@ delim c = spaces *> char c *> spaces
 
 -- Patterns (no "spaces"!)
 
-typeNameP :: Parser GraphQLTypeName
-typeNameP = (:) <$> upper <*> many alphaNum
+typeNameP :: Parser GraphQLName
+typeNameP = GraphQLTypeName <$> ((:) <$> upper <*> many alphaNum)
 
 symbolNameP :: Parser GraphQLName
 symbolNameP = GraphQLSymbolName <$> ((:) <$> lower <*> many alphaNum)
