@@ -20,20 +20,16 @@ data GraphQLStatement
   | UnionDefinition GraphQLTypeName GraphQLTypeNames
       deriving (Show)
 
-data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType
-      deriving (Show)
+data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType deriving (Show)
+data GraphQLEnumName = GraphQLEnumName String deriving (Show)
+data GraphQLFieldName = GraphQLFieldName String deriving (Show)
+data GraphQLObjectField = GraphQLObjectField GraphQLFieldName GraphQLArguments GraphQLType Bool deriving (Show)
+data GraphQLTypeName = GraphQLTypeName String deriving (Show)
 
-data GraphQLObjectField = GraphQLObjectField GraphQLFieldName GraphQLArguments GraphQLType Bool
-      deriving (Show)
-
-data GraphQLEnumName = GraphQLEnumName String
-      deriving (Show)
-
-data GraphQLFieldName = GraphQLFieldName String
-      deriving (Show)
-
-data GraphQLTypeName = GraphQLTypeName String
-      deriving (Show)
+type GraphQLArguments = [GraphQLArgument]
+type GraphQLEnumNames = [GraphQLEnumName]
+type GraphQLObjectArguments = [GraphQLObjectField]
+type GraphQLTypeNames = [GraphQLTypeName]
 
 data GraphQLType
   = GraphQLBoolean
@@ -44,11 +40,6 @@ data GraphQLType
   | GraphQLString
   | GraphQLUserType GraphQLTypeName
       deriving (Show)
-
-type GraphQLTypeNames = [GraphQLTypeName]
-type GraphQLEnumNames = [GraphQLEnumName]
-type GraphQLArguments = [GraphQLArgument]
-type GraphQLObjectArguments = [GraphQLObjectField]
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = statements statement
