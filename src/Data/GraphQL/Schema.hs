@@ -3,31 +3,36 @@ module Data.GraphQL.Schema
   , GraphQLStatement(..)
   , GraphQLArgument(..)
   , GraphQLObjectField(..)
-  , GraphQLName(..)
+  , GraphQLEnumName(..)
+  , GraphQLFieldName(..)
+  , GraphQLTypeName(..)
   , GraphQLType(..)
   ) where
 
 import           Text.ParserCombinators.Parsec
 
 data GraphQLStatement
-  = EnumDefinition GraphQLName GraphQLEnumNames
-  | InputDefinition GraphQLName GraphQLObjectArguments
-  | InterfaceDefinition GraphQLName GraphQLObjectArguments
-  | ObjectDefinition GraphQLName (Maybe GraphQLName) GraphQLObjectArguments
-  | ScalarDefinition GraphQLName
-  | UnionDefinition GraphQLName GraphQLTypeNames
+  = EnumDefinition GraphQLTypeName GraphQLEnumNames
+  | InputDefinition GraphQLTypeName GraphQLObjectArguments
+  | InterfaceDefinition GraphQLTypeName GraphQLObjectArguments
+  | ObjectDefinition GraphQLTypeName (Maybe GraphQLTypeName) GraphQLObjectArguments
+  | ScalarDefinition GraphQLTypeName
+  | UnionDefinition GraphQLTypeName GraphQLTypeNames
       deriving (Show)
 
-data GraphQLArgument = GraphQLArgument GraphQLName GraphQLType
+data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType
       deriving (Show)
 
-data GraphQLObjectField = GraphQLObjectField GraphQLName GraphQLArguments GraphQLType Bool
+data GraphQLObjectField = GraphQLObjectField GraphQLFieldName GraphQLArguments GraphQLType Bool
       deriving (Show)
 
-data GraphQLName
-  = GraphQLEnumName String
-  | GraphQLFieldName String
-  | GraphQLTypeName String
+data GraphQLEnumName = GraphQLEnumName String
+      deriving (Show)
+
+data GraphQLFieldName = GraphQLFieldName String
+      deriving (Show)
+
+data GraphQLTypeName = GraphQLTypeName String
       deriving (Show)
 
 data GraphQLType
@@ -37,11 +42,11 @@ data GraphQLType
   | GraphQLID
   | GraphQLInt
   | GraphQLString
-  | GraphQLUserType GraphQLName
+  | GraphQLUserType GraphQLTypeName
       deriving (Show)
 
-type GraphQLTypeNames = [GraphQLName]
-type GraphQLEnumNames = [GraphQLName]
+type GraphQLTypeNames = [GraphQLTypeName]
+type GraphQLEnumNames = [GraphQLEnumName]
 type GraphQLArguments = [GraphQLArgument]
 type GraphQLObjectArguments = [GraphQLObjectField]
 
@@ -131,13 +136,13 @@ unionDefinition = UnionDefinition <$> name <*> utypes
 
 -- Common
 
-enumName :: Parser GraphQLName
+enumName :: Parser GraphQLEnumName
 enumName = spaces *> enumNameP <* spaces
 
-fieldName :: Parser GraphQLName
+fieldName :: Parser GraphQLFieldName
 fieldName = spaces *> fieldNameP <* spaces
 
-typeName :: Parser GraphQLName
+typeName :: Parser GraphQLTypeName
 typeName = spaces *> typeNameP <* spaces
 
 graphQlTypeName :: Parser GraphQLType
@@ -169,13 +174,13 @@ optionBool p = option False (p *> pure True)
 
 -- Patterns (no "spaces"!)
 
-enumNameP :: Parser GraphQLName
+enumNameP :: Parser GraphQLEnumName
 enumNameP = GraphQLEnumName <$> many1 upper
 
-fieldNameP :: Parser GraphQLName
+fieldNameP :: Parser GraphQLFieldName
 fieldNameP = GraphQLFieldName <$> ((:) <$> lower <*> many alphaNum)
 
-typeNameP :: Parser GraphQLName
+typeNameP :: Parser GraphQLTypeName
 typeNameP = GraphQLTypeName <$> ((:) <$> upper <*> many alphaNum)
 
 graphQlTypeP :: Parser GraphQLType
