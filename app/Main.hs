@@ -47,11 +47,9 @@ data GraphQLType
   | GraphQLTypeUser String
 
 graphQLStatements :: Parser [GraphQLStatement]
-graphQLStatements = do
-  spaces
-  statements <- many $ enumDefinition <|> interfaceDefinition <|> scalarDefinition <|> typeDefinition <|> unionDefinition
-  spaces
-  return $ statements
+graphQLStatements = spaces *> statements <* spaces
+  where
+    statements = many $ enumDefinition <|> interfaceDefinition <|> scalarDefinition <|> typeDefinition <|> unionDefinition
 
 -- Enum
 
@@ -70,15 +68,11 @@ enumSymbols = spaces *> (sepEndBy1 (many1 upper) spaces) <* spaces
 -- Interface
 
 interfaceDefinition :: Parser GraphQLStatement
-interfaceDefinition = do
-  keyword "interface"
-  name <- typeName
-  spaces
-  args <- option [] $ parens typeArgs
-  spaces
-  types <- braces typeTypes
-  spaces
-  return $ InterfaceDefinition name types
+interfaceDefinition = InterfaceDefinition <$> name <*> types
+  where
+    name = (keyword "interface") *> typeName <* spaces
+    args = spaces *> (option [] $ parens typeArgs) <* spaces
+    types = spaces *> (braces typeTypes) <* spaces
 
 -- Scalar
 
@@ -93,28 +87,20 @@ scalarName = typeName
 -- Type
 
 typeDefinition :: Parser GraphQLStatement
-typeDefinition = do
-  keyword "type"
-  name <- typeName
-  spaces
-  ifname <- option [] $ do
-    keyword "implements"
-    ifname <- typeName
-    spaces
-    return ifname
-  spaces
-  types <- braces typeTypes
-  spaces
-  return $ TypeDefinition name ifname types
+typeDefinition = TypeDefinition <$> name <*> ifname <*> types
+  where
+    name = keyword "type" *> spaces *> typeName <* spaces
+    ifname = option [] $ do
+      keyword "implements"
+      ifname <- typeName
+      spaces
+      return ifname
+    types = spaces *> (braces typeTypes) <* spaces
 
 typeArgs :: Parser [(String, GraphQLType)]
-typeArgs = do
-  let
-    args' = sepEndBy1 typeArg (spaces >> (char ',') >> spaces)
-  spaces
-  args <- args'
-  spaces
-  return $ args
+typeArgs = spaces *> args <* spaces
+  where
+    args = sepEndBy1 typeArg (spaces >> (char ',') >> spaces)
 
 typeArg :: Parser (String, GraphQLType)
 typeArg = (,) <$> name <*> gtype
@@ -139,10 +125,10 @@ unionDefinition :: Parser GraphQLStatement
 unionDefinition = UnionDefinition <$> name <*> utypes
   where
     name = keyword "union" *> typeName <* spaces <* (char '=') <* spaces
-    utypes = unionTypes <* spaces
+    utypes = spaces *> unionTypes <* spaces
 
 unionTypes :: Parser [String]
-unionTypes = spaces *> (sepBy1 unionType (char '|')) <* spaces
+unionTypes = sepBy1 unionType (char '|')
 
 unionType :: Parser String
 unionType = spaces *> typeName <* spaces
