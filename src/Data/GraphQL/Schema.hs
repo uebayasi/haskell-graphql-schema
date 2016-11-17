@@ -97,9 +97,9 @@ objectType :: Parser GraphQLObjectField
 objectType = GraphQLObjectField <$> name <*> args <*> otype <*> nonnull
   where
     name = fieldName
-    args = optionList (parens objectArgs)
+    args = optionList $ parens objectArgs
     otype = delim ':' *> graphQlTypeName
-    nonnull = optionBool (delim '!')
+    nonnull = optionBool $ delim '!'
 
 objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
