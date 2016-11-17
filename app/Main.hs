@@ -117,41 +117,29 @@ typeDefinition = do
 
 typeArgs :: Parser [(String, GraphQLType)]
 typeArgs = do
+  let
+    args' = sepEndBy1 typeArg (spaces >> (char ',') >> spaces)
   spaces
-  args <- sepEndBy1 typeArg (spaces >> (char ',') >> spaces)
+  args <- args'
   spaces
   return $ args
 
 typeArg :: Parser (String, GraphQLType)
-typeArg = do
-  spaces
-  name <- memberName
-  spaces
-  char ':'
-  spaces
-  gtype <- graphQlType
-  spaces
-  return $ (name, gtype)
+typeArg = (,) <$> name <*> gtype
+  where
+    name = spaces *> memberName <* spaces <* (char ':') <* spaces
+    gtype = spaces *> graphQlType <* spaces
 
 typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
 typeTypes = spaces *> (sepEndBy1 typeType spaces) <* spaces
 
 typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
-typeType = do
-  spaces
-  name <- memberName
-  spaces
-  args <- option [] $ parens typeArgs
-  spaces
-  char ':'
-  spaces
-  gtype <- graphQlType
-  spaces
-  nonnull <- option False $ do
-    char '!'
-    return True
-  spaces
-  return $ (name, args, gtype, nonnull)
+typeType = (,,,) <$> name <*> args <*> gtype <*> nonnull
+  where
+    name = spaces *> memberName <* spaces
+    args = spaces *> (option [] $ parens typeArgs) <* spaces <* (char ':') <* spaces
+    gtype = spaces *> graphQlType <* spaces
+    nonnull =  spaces *> (option False $ (char '!') *> pure True) <* spaces
 
 -- Union
 
