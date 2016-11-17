@@ -56,23 +56,16 @@ graphQLStatements = do
 -- Enum
 
 enumDefinition :: Parser GraphQLStatement
-enumDefinition = do
-  keyword "enum"
-  name <- enumName
-  spaces
-  symbols <- braces enumSymbols
-  spaces
-  return $ EnumDefinition name symbols
+enumDefinition = EnumDefinition <$> name <*> symbols
+  where
+    name = (keyword "enum") *> enumName <* spaces
+    symbols = braces enumSymbols <* spaces
 
 enumName :: Parser String
 enumName = typeName
 
 enumSymbols :: Parser [String]
-enumSymbols = do
-  spaces
-  symbols <- sepEndBy1 (many1 upper) spaces
-  spaces
-  return $ symbols
+enumSymbols = spaces *> (sepEndBy1 (many1 upper) spaces) <* spaces
 
 -- Interface
 
@@ -90,11 +83,9 @@ interfaceDefinition = do
 -- Scalar
 
 scalarDefinition :: Parser GraphQLStatement
-scalarDefinition = do
-  keyword "scalar"
-  name <- scalarName
-  spaces
-  return $ ScalarDefinition name
+scalarDefinition = ScalarDefinition <$> name
+  where
+    name = (keyword "scalar") *> scalarName <* spaces
 
 scalarName :: Parser String
 scalarName = typeName
