@@ -2,8 +2,8 @@ module Data.GraphQL.XXX.Schema
   ( graphQLStatements
   , GraphQLStatement(..)
   , GraphQLArgument(..)
-  , GraphQLEnumName(..)
   , GraphQLField(..)
+  , GraphQLEnumName(..)
   , GraphQLFieldName(..)
   , GraphQLTypeName(..)
   , GraphQLType(..)
@@ -21,14 +21,16 @@ data GraphQLStatement
   deriving (Show)
 
 data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType deriving (Show)
-data GraphQLEnumName = GraphQLEnumName String deriving (Show)
 data GraphQLField = GraphQLField GraphQLFieldName GraphQLArguments GraphQLType Bool deriving (Show)
+
+type GraphQLArguments = [GraphQLArgument]
+type GraphQLFields = [GraphQLField]
+
+data GraphQLEnumName = GraphQLEnumName String deriving (Show)
 data GraphQLFieldName = GraphQLFieldName String deriving (Show)
 data GraphQLTypeName = GraphQLTypeName String deriving (Show)
 
-type GraphQLArguments = [GraphQLArgument]
 type GraphQLEnumNames = [GraphQLEnumName]
-type GraphQLFields = [GraphQLField]
 type GraphQLTypeNames = [GraphQLTypeName]
 
 data GraphQLType
