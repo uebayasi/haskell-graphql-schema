@@ -14,13 +14,22 @@ readSchema input = case (parse (graphQLStatements) "GraphQL Schema" input) of
   Left err -> "Error: " ++ show err
   Right val -> case val of
     (EnumDefinition name symbols):rest ->
-      "Enum! name=" ++ name
+      "Enum! name=" ++ name ++ " symbols=" ++ (joinNames ',' symbols)
+    (InterfaceDefinition name _):rest ->
+      "Interface! name=" ++ name
     (ScalarDefinition name):rest ->
       "Scalar! name=" ++ name
     (TypeDefinition name ifname _):rest ->
       "Type! name=" ++ name ++ " ifname=" ++ ifname
-    (UnionDefinition name _):rest ->
-      "Union! name=" ++ name
+    (UnionDefinition name utypes):rest ->
+      "Union! name=" ++ name ++ " utypes=" ++ (joinNames '|' utypes)
+
+joinNames :: Char -> [String] -> String
+joinNames sep names =
+  case names of
+    [] -> ""
+    first:[] -> first
+    first:rest -> first ++ (concat $ map ((:) sep) rest)
 
 data GraphQLStatement
   = EnumDefinition String [String]
