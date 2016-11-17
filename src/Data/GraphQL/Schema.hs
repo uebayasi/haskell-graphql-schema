@@ -14,6 +14,7 @@ data GraphQLStatement
   | ObjectDefinition GraphQLName (Maybe GraphQLName) GraphQLObjectArguments
   | ScalarDefinition GraphQLName
   | UnionDefinition GraphQLName GraphQLTypeNames
+      deriving (Show)
 
 data GraphQLType
   = GraphQLBoolean
@@ -23,11 +24,13 @@ data GraphQLType
   | GraphQLInt
   | GraphQLString
   | GraphQLUserType GraphQLName
+      deriving (Show)
 
 data GraphQLName
   = GraphQLEnumName String
   | GraphQLFieldName String
   | GraphQLTypeName String
+      deriving (Show)
 
 type GraphQLTypeNames = [GraphQLName]
 type GraphQLEnumNames = [GraphQLName]
