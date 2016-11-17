@@ -60,9 +60,7 @@ enumDefinition = EnumDefinition <$> name <*> symbols
     symbols = braces enumSymbols
 
 enumSymbols :: Parser [String]
-enumSymbols = spaces *> symbols <* spaces
-  where
-    symbols = sepEndBy1 (many1 upper) spaces
+enumSymbols = sepEndBy1 (many1 upper) spaces
 
 -- Interface
 
@@ -90,9 +88,7 @@ typeDefinition = TypeDefinition <$> name <*> ifname <*> types
     types = braces typeTypes
 
 typeArgs :: Parser [(String, GraphQLType)]
-typeArgs = spaces *> args <* spaces
-  where
-    args = sepEndBy1 typeArg (delim ',')
+typeArgs = sepEndBy1 typeArg (delim ',')
 
 typeArg :: Parser (String, GraphQLType)
 typeArg = (,) <$> name <*> graphQlTypeName
@@ -100,9 +96,7 @@ typeArg = (,) <$> name <*> graphQlTypeName
     name = symbolName <* (delim ':')
 
 typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
-typeTypes = spaces *> types <* spaces
-  where
-    types = sepEndBy1 typeType spaces
+typeTypes = sepEndBy1 typeType spaces
 
 typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
 typeType = (,,,) <$> name <*> args <*> ttype <*> nonnull
