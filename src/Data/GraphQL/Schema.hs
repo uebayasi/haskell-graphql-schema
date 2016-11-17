@@ -173,22 +173,22 @@ graphQlTypeP
   <|> graphQlUserTypeP
 
 graphQlBooleanP :: Parser GraphQLType
-graphQlBooleanP = pure GraphQLBoolean <$> string "Boolean"
+graphQlBooleanP = try $ pure GraphQLBoolean <$> string "Boolean"
 
 graphQlFloatP :: Parser GraphQLType
-graphQlFloatP = pure GraphQLFloat <$> string "Float"
+graphQlFloatP = try $ pure GraphQLFloat <$> string "Float"
 
 graphQlIDP :: Parser GraphQLType
-graphQlIDP = pure GraphQLID <$> string "ID"
+graphQlIDP = try $ pure GraphQLID <$> string "ID"
 
 graphQlIntP :: Parser GraphQLType
-graphQlIntP = pure GraphQLInt <$> string "Int"
+graphQlIntP = try $ pure GraphQLInt <$> string "Int"
 
 graphQlListP :: Parser GraphQLType
-graphQlListP = GraphQLList <$> brackets graphQlTypeP
+graphQlListP = try $ GraphQLList <$> brackets graphQlTypeP
 
 graphQlStringP :: Parser GraphQLType
-graphQlStringP = pure GraphQLString <$> string "String"
+graphQlStringP = try $ pure GraphQLString <$> string "String"
 
 graphQlUserTypeP :: Parser GraphQLType
-graphQlUserTypeP = GraphQLUserType <$> typeNameP
+graphQlUserTypeP = try $ GraphQLUserType <$> typeNameP
