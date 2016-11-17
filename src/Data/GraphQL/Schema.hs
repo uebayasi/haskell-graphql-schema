@@ -26,7 +26,7 @@ data GraphQLType
 
 data GraphQLName
   = GraphQLEnumName String
-  | GraphQLSymbolName String
+  | GraphQLFieldName String
   | GraphQLTypeName String
 
 type GraphQLTypeNames = [GraphQLName]
@@ -91,7 +91,7 @@ objectTypes = sepEndBy1 objectType spaces
 objectType :: Parser GraphQLObjectArgument
 objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
   where
-    name = symbolName
+    name = fieldName
     args = option [] (parens objectArgs)
     otype = delim ':' *> graphQlTypeName
     nonnull = option False (delim '!' *> pure True)
@@ -102,7 +102,7 @@ objectArgs = sepEndBy1 objectArg (delim ',')
 objectArg :: Parser GraphQLArgument
 objectArg = (,) <$> name <*> graphQlTypeName
   where
-    name = symbolName <* delim ':'
+    name = fieldName <* delim ':'
 
 -- Scalar
 
@@ -121,14 +121,14 @@ unionDefinition = UnionDefinition <$> name <*> utypes
 
 -- Common
 
-typeName :: Parser GraphQLName
-typeName = spaces *> typeNameP <* spaces
-
-symbolName :: Parser GraphQLName
-symbolName = spaces *> symbolNameP <* spaces
-
 enumName :: Parser GraphQLName
 enumName = spaces *> enumNameP <* spaces
+
+fieldName :: Parser GraphQLName
+fieldName = spaces *> fieldNameP <* spaces
+
+typeName :: Parser GraphQLName
+typeName = spaces *> typeNameP <* spaces
 
 graphQlTypeName :: Parser GraphQLType
 graphQlTypeName = spaces *> graphQlTypeP <* spaces
@@ -153,14 +153,14 @@ delim c = spaces *> char c *> spaces
 
 -- Patterns (no "spaces"!)
 
-typeNameP :: Parser GraphQLName
-typeNameP = GraphQLTypeName <$> ((:) <$> upper <*> many alphaNum)
-
-symbolNameP :: Parser GraphQLName
-symbolNameP = GraphQLSymbolName <$> ((:) <$> lower <*> many alphaNum)
-
 enumNameP :: Parser GraphQLName
 enumNameP = GraphQLEnumName <$> many1 upper
+
+fieldNameP :: Parser GraphQLName
+fieldNameP = GraphQLFieldName <$> ((:) <$> lower <*> many alphaNum)
+
+typeNameP :: Parser GraphQLName
+typeNameP = GraphQLTypeName <$> ((:) <$> upper <*> many alphaNum)
 
 graphQlTypeP :: Parser GraphQLType
 graphQlTypeP
