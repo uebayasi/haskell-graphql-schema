@@ -6,11 +6,11 @@ module Data.GraphQL.Schema
 import           Text.ParserCombinators.Parsec
 
 data GraphQLStatement
-  = EnumDefinition GraphQLTypeName [GraphQLEnumName]
-  | InterfaceDefinition GraphQLTypeName [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
-  | ObjectDefinition GraphQLTypeName String [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
+  = EnumDefinition GraphQLTypeName GraphQLEnumNames
+  | InterfaceDefinition GraphQLTypeName GraphQLObjectArguments
+  | ObjectDefinition GraphQLTypeName String GraphQLObjectArguments
   | ScalarDefinition GraphQLTypeName
-  | UnionDefinition GraphQLTypeName [GraphQLTypeName]
+  | UnionDefinition GraphQLTypeName GraphQLTypeNames
 
 data GraphQLType
   = GraphQLTypeBoolean
@@ -21,10 +21,14 @@ data GraphQLType
   | GraphQLTypeUser String
 
 type GraphQLTypeName = String
+type GraphQLTypeNames = [GraphQLTypeName]
 type GraphQLSymbolName = String
 type GraphQLEnumName = String
-type GraphQLArgument = (String, GraphQLType)
+type GraphQLEnumNames = [GraphQLEnumName]
+type GraphQLArgument = (GraphQLSymbolName, GraphQLType)
 type GraphQLArguments = [GraphQLArgument]
+type GraphQLObjectArgument = (GraphQLSymbolName, GraphQLArguments, GraphQLType, Bool)
+type GraphQLObjectArguments = [GraphQLObjectArgument]
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = statements statement
