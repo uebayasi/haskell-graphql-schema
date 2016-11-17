@@ -90,11 +90,7 @@ typeDefinition :: Parser GraphQLStatement
 typeDefinition = TypeDefinition <$> name <*> ifname <*> types
   where
     name = keyword "type" *> spaces *> typeName <* spaces
-    ifname = option [] $ do
-      keyword "implements"
-      ifname <- typeName
-      spaces
-      return ifname
+    ifname = option [] $ (keyword "implements") *> typeName <* spaces
     types = spaces *> (braces typeTypes) <* spaces
 
 typeArgs :: Parser [(String, GraphQLType)]
