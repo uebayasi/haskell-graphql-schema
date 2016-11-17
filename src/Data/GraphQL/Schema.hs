@@ -67,7 +67,7 @@ inputDefinition :: Parser GraphQLStatement
 inputDefinition = InputDefinition <$> name <*> itypes
   where
     name = keyword "input" typeName
-    args = option [] (parens objectArgs)
+    args = optionList (parens objectArgs)
     itypes = braces objectTypes
 
 -- Interface
@@ -76,7 +76,7 @@ interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> itypes
   where
     name = keyword "interface" typeName
-    args = option [] (parens objectArgs)
+    args = optionList (parens objectArgs)
     itypes = braces objectTypes
 
 -- Object
@@ -95,7 +95,7 @@ objectType :: Parser GraphQLObjectArgument
 objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
   where
     name = fieldName
-    args = option [] (parens objectArgs)
+    args = optionList (parens objectArgs)
     otype = delim ':' *> graphQlTypeName
     nonnull = option False (delim '!' *> pure True)
 
@@ -153,6 +153,9 @@ keyword s p = spaces *> string s *> spaces *> p
 
 delim :: Char -> Parser ()
 delim c = spaces *> char c *> spaces
+
+optionList :: Parser [a] -> Parser [a]
+optionList p = option [] p
 
 -- Patterns (no "spaces"!)
 
