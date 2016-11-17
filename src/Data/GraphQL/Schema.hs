@@ -1,7 +1,8 @@
 module Data.GraphQL.Schema
   ( graphQLStatements
   , GraphQLStatement(..)
-  , GraphQLNode(..)
+  , GraphQLArgument(..)
+  , GraphQLObjectField(..)
   , GraphQLName(..)
   , GraphQLType(..)
   ) where
@@ -17,9 +18,10 @@ data GraphQLStatement
   | UnionDefinition GraphQLName GraphQLTypeNames
       deriving (Show)
 
-data GraphQLNode
-  = GraphQLArgument GraphQLName GraphQLType
-  | GraphQLObjectField GraphQLName GraphQLArguments GraphQLType Bool
+data GraphQLArgument = GraphQLArgument GraphQLName GraphQLType
+      deriving (Show)
+
+data GraphQLObjectField = GraphQLObjectField GraphQLName GraphQLArguments GraphQLType Bool
       deriving (Show)
 
 data GraphQLName
@@ -40,8 +42,8 @@ data GraphQLType
 
 type GraphQLTypeNames = [GraphQLName]
 type GraphQLEnumNames = [GraphQLName]
-type GraphQLArguments = [GraphQLNode]
-type GraphQLObjectArguments = [GraphQLNode]
+type GraphQLArguments = [GraphQLArgument]
+type GraphQLObjectArguments = [GraphQLObjectField]
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = statements statement
@@ -95,7 +97,7 @@ objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
 objectTypes :: Parser GraphQLObjectArguments
 objectTypes = sepEndBy1 objectType spaces
 
-objectType :: Parser GraphQLNode
+objectType :: Parser GraphQLObjectField
 objectType = GraphQLObjectField <$> name <*> args <*> otype <*> nonnull
   where
     name = fieldName
@@ -106,7 +108,7 @@ objectType = GraphQLObjectField <$> name <*> args <*> otype <*> nonnull
 objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
-objectArg :: Parser GraphQLNode
+objectArg :: Parser GraphQLArgument
 objectArg = GraphQLArgument <$> name <*> otype
   where
     name = fieldName
