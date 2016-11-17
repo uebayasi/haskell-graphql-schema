@@ -52,7 +52,7 @@ graphQLStatements = statements statement
 enumDefinition :: Parser GraphQLStatement
 enumDefinition = EnumDefinition <$> name <*> symbols
   where
-    name = keyword "enum" *> typeName
+    name = keyword "enum" typeName
     symbols = braces enumSymbols
 
 enumSymbols :: Parser GraphQLEnumNames
@@ -63,7 +63,7 @@ enumSymbols = sepEndBy1 enumName spaces
 inputDefinition :: Parser GraphQLStatement
 inputDefinition = InputDefinition <$> name <*> itypes
   where
-    name = keyword "input" *> typeName
+    name = keyword "input" typeName
     args = option [] (parens objectArgs)
     itypes = braces objectTypes
 
@@ -72,7 +72,7 @@ inputDefinition = InputDefinition <$> name <*> itypes
 interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> itypes
   where
-    name = keyword "interface" *> typeName
+    name = keyword "interface" typeName
     args = option [] (parens objectArgs)
     itypes = braces objectTypes
 
@@ -81,8 +81,8 @@ interfaceDefinition = InterfaceDefinition <$> name <*> itypes
 objectDefinition :: Parser GraphQLStatement
 objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
   where
-    name = keyword "type" *> typeName
-    ifname = optionMaybe (keyword "implements" *> typeName)
+    name = keyword "type" typeName
+    ifname = optionMaybe (keyword "implements" typeName)
     otypes = braces objectTypes
 
 objectTypes :: Parser GraphQLObjectArguments
@@ -109,14 +109,14 @@ objectArg = (,) <$> name <*> graphQlTypeName
 scalarDefinition :: Parser GraphQLStatement
 scalarDefinition = ScalarDefinition <$> name
   where
-    name = keyword "scalar" *> typeName
+    name = keyword "scalar" typeName
 
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
 unionDefinition = UnionDefinition <$> name <*> utypes
   where
-    name = keyword "union" *> typeName <* delim '='
+    name = keyword "union" typeName <* delim '='
     utypes = sepBy1 typeName (delim '|')
 
 -- Common
@@ -145,8 +145,8 @@ brackets = between (delim '[') (delim ']')
 parens :: Parser a -> Parser a
 parens = between (delim '(') (delim ')')
 
-keyword :: String -> Parser ()
-keyword s = spaces *> string s *> spaces
+keyword :: String -> Parser a -> Parser a
+keyword s p = spaces *> string s *> spaces *> p
 
 delim :: Char -> Parser ()
 delim c = spaces *> char c *> spaces
@@ -173,22 +173,22 @@ graphQlTypeP
   <|> graphQlUserTypeP
 
 graphQlBooleanP :: Parser GraphQLType
-graphQlBooleanP = try $ pure GraphQLBoolean <$> string "Boolean"
+graphQlBooleanP = (try $ pure GraphQLBoolean <$> string "Boolean") <?> "Boolean"
 
 graphQlFloatP :: Parser GraphQLType
-graphQlFloatP = try $ pure GraphQLFloat <$> string "Float"
+graphQlFloatP = (try $ pure GraphQLFloat <$> string "Float") <?> "Float"
 
 graphQlIDP :: Parser GraphQLType
-graphQlIDP = try $ pure GraphQLID <$> string "ID"
+graphQlIDP = (try $ pure GraphQLID <$> string "ID") <?> "ID"
 
 graphQlIntP :: Parser GraphQLType
-graphQlIntP = try $ pure GraphQLInt <$> string "Int"
+graphQlIntP = (try $ pure GraphQLInt <$> string "Int") <?> "Int"
 
 graphQlListP :: Parser GraphQLType
-graphQlListP = try $ GraphQLList <$> brackets graphQlTypeP
+graphQlListP = (try $ GraphQLList <$> brackets graphQlTypeP) <?> "List"
 
 graphQlStringP :: Parser GraphQLType
-graphQlStringP = try $ pure GraphQLString <$> string "String"
+graphQlStringP = (try $ pure GraphQLString <$> string "String") <?> "String"
 
 graphQlUserTypeP :: Parser GraphQLType
-graphQlUserTypeP = try $ GraphQLUserType <$> typeNameP
+graphQlUserTypeP = (try $ GraphQLUserType <$> typeNameP) <?> "User-type"
