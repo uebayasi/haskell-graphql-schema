@@ -3,8 +3,8 @@ module Data.GraphQL.XXX.Schema
   , GraphQLStatement(..)
   , GraphQLArgument(..)
   , GraphQLEnumName(..)
+  , GraphQLField(..)
   , GraphQLFieldName(..)
-  , GraphQLObjectField(..)
   , GraphQLTypeName(..)
   , GraphQLType(..)
   ) where
@@ -13,22 +13,22 @@ import           Text.ParserCombinators.Parsec
 
 data GraphQLStatement
   = EnumDefinition GraphQLTypeName GraphQLEnumNames
-  | InputDefinition GraphQLTypeName GraphQLObjectArguments
-  | InterfaceDefinition GraphQLTypeName GraphQLObjectArguments
-  | ObjectDefinition GraphQLTypeName (Maybe GraphQLTypeName) GraphQLObjectArguments
+  | InputDefinition GraphQLTypeName GraphQLFields
+  | InterfaceDefinition GraphQLTypeName GraphQLFields
+  | ObjectDefinition GraphQLTypeName (Maybe GraphQLTypeName) GraphQLFields
   | ScalarDefinition GraphQLTypeName
   | UnionDefinition GraphQLTypeName GraphQLTypeNames
   deriving (Show)
 
 data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType deriving (Show)
 data GraphQLEnumName = GraphQLEnumName String deriving (Show)
+data GraphQLField = GraphQLField GraphQLFieldName GraphQLArguments GraphQLType Bool deriving (Show)
 data GraphQLFieldName = GraphQLFieldName String deriving (Show)
-data GraphQLObjectField = GraphQLObjectField GraphQLFieldName GraphQLArguments GraphQLType Bool deriving (Show)
 data GraphQLTypeName = GraphQLTypeName String deriving (Show)
 
 type GraphQLArguments = [GraphQLArgument]
 type GraphQLEnumNames = [GraphQLEnumName]
-type GraphQLObjectArguments = [GraphQLObjectField]
+type GraphQLFields = [GraphQLField]
 type GraphQLTypeNames = [GraphQLTypeName]
 
 data GraphQLType
@@ -88,11 +88,11 @@ objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
     ifname = optionMaybe $ keyword "implements" typeName
     otypes = braces objectTypes
 
-objectTypes :: Parser GraphQLObjectArguments
+objectTypes :: Parser GraphQLFields
 objectTypes = sepEndBy1 objectType spaces
 
-objectType :: Parser GraphQLObjectField
-objectType = GraphQLObjectField <$> name <*> args <*> otype <*> nonnull
+objectType :: Parser GraphQLField
+objectType = GraphQLField <$> name <*> args <*> otype <*> nonnull
   where
     name = fieldName
     args = optionList $ parens objectArgs
