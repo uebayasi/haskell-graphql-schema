@@ -24,14 +24,15 @@ data GraphQLType
 
 data GraphQLName
   = GraphQLEnumName String
+  | GraphQLSymbolName String
 
 type GraphQLTypeName = String
 type GraphQLTypeNames = [GraphQLTypeName]
 type GraphQLSymbolName = String
 type GraphQLEnumNames = [GraphQLName]
-type GraphQLArgument = (GraphQLSymbolName, GraphQLType)
+type GraphQLArgument = (GraphQLName, GraphQLType)
 type GraphQLArguments = [GraphQLArgument]
-type GraphQLObjectArgument = (GraphQLSymbolName, GraphQLArguments, GraphQLType, Bool)
+type GraphQLObjectArgument = (GraphQLName, GraphQLArguments, GraphQLType, Bool)
 type GraphQLObjectArguments = [GraphQLObjectArgument]
 
 graphQLStatements :: Parser [GraphQLStatement]
@@ -137,8 +138,8 @@ delim c = spaces *> char c *> spaces
 typeNameP :: Parser GraphQLTypeName
 typeNameP = (:) <$> upper <*> many alphaNum
 
-symbolNameP :: Parser GraphQLSymbolName
-symbolNameP = (:) <$> lower <*> many alphaNum
+symbolNameP :: Parser GraphQLName
+symbolNameP = GraphQLSymbolName <$> ((:) <$> lower <*> many alphaNum)
 
 enumNameP :: Parser GraphQLName
 enumNameP = GraphQLEnumName <$> many1 upper
