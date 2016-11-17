@@ -13,12 +13,12 @@ data GraphQLStatement
   | UnionDefinition GraphQLTypeName GraphQLTypeNames
 
 data GraphQLType
-  = GraphQLTypeBoolean
-  | GraphQLTypeFloat
-  | GraphQLTypeList GraphQLType
-  | GraphQLTypeInt
-  | GraphQLTypeString
-  | GraphQLTypeUser GraphQLTypeName
+  = GraphQLBoolean
+  | GraphQLFloat
+  | GraphQLList GraphQLType
+  | GraphQLInt
+  | GraphQLString
+  | GraphQLUserType GraphQLTypeName
 
 type GraphQLTypeName = String
 type GraphQLTypeNames = [GraphQLTypeName]
@@ -108,7 +108,7 @@ unionDefinition = UnionDefinition <$> name <*> utypes
 typeName = spaces *> typeNameP <* spaces
 symbolName = spaces *> symbolNameP <* spaces
 enumName = spaces *> enumNameP <* spaces
-graphQlTypeName = spaces *> graphQlType <* spaces
+graphQlTypeName = spaces *> graphQlTypeP <* spaces
 
 statements :: Parser a -> Parser [a]
 statements s = spaces *> (many s) <* spaces
@@ -139,29 +139,29 @@ symbolNameP = (:) <$> lower <*> many alphaNum
 enumNameP :: Parser GraphQLEnumName
 enumNameP = many1 upper
 
-graphQlType :: Parser GraphQLType
-graphQlType
-  =   graphQlTypeBoolean
-  <|> graphQlTypeFloat
-  <|> graphQlTypeInt
-  <|> graphQlTypeList
-  <|> graphQlTypeString
-  <|> graphQlTypeUser
+graphQlTypeP :: Parser GraphQLType
+graphQlTypeP
+  =   graphQlBooleanP
+  <|> graphQlFloatP
+  <|> graphQlIntP
+  <|> graphQlListP
+  <|> graphQlStringP
+  <|> graphQlUserTypeP
 
-graphQlTypeBoolean :: Parser GraphQLType
-graphQlTypeBoolean = pure GraphQLTypeBoolean <$> string "Boolean"
+graphQlBooleanP :: Parser GraphQLType
+graphQlBooleanP = pure GraphQLBoolean <$> string "Boolean"
 
-graphQlTypeFloat :: Parser GraphQLType
-graphQlTypeFloat = pure GraphQLTypeFloat <$> string "Float"
+graphQlFloatP :: Parser GraphQLType
+graphQlFloatP = pure GraphQLFloat <$> string "Float"
 
-graphQlTypeInt :: Parser GraphQLType
-graphQlTypeInt = pure GraphQLTypeInt <$> string "Int"
+graphQlIntP :: Parser GraphQLType
+graphQlIntP = pure GraphQLInt <$> string "Int"
 
-graphQlTypeList :: Parser GraphQLType
-graphQlTypeList = GraphQLTypeList <$> brackets graphQlType
+graphQlListP :: Parser GraphQLType
+graphQlListP = GraphQLList <$> brackets graphQlTypeP
 
-graphQlTypeString :: Parser GraphQLType
-graphQlTypeString = pure GraphQLTypeString <$> string "String"
+graphQlStringP :: Parser GraphQLType
+graphQlStringP = pure GraphQLString <$> string "String"
 
-graphQlTypeUser :: Parser GraphQLType
-graphQlTypeUser = GraphQLTypeUser <$> typeNameP
+graphQlUserTypeP :: Parser GraphQLType
+graphQlUserTypeP = GraphQLUserType <$> typeNameP
