@@ -70,16 +70,8 @@ objectDefinition :: Parser GraphQLStatement
 objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
   where
     name = keyword "type" *> typeName
-    ifname = option Nothing (Just <$> (keyword "implements" *> typeName))
+    ifname = optionMaybe (keyword "implements" *> typeName)
     otypes = braces objectTypes
-
-objectArgs :: Parser GraphQLArguments
-objectArgs = sepEndBy1 objectArg (delim ',')
-
-objectArg :: Parser GraphQLArgument
-objectArg = (,) <$> name <*> graphQlTypeName
-  where
-    name = symbolName <* delim ':'
 
 objectTypes :: Parser GraphQLObjectArguments
 objectTypes = sepEndBy1 objectType spaces
@@ -91,6 +83,14 @@ objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
     args = option [] (parens objectArgs)
     otype = delim ':' *> graphQlTypeName
     nonnull = option False (delim '!' *> pure True)
+
+objectArgs :: Parser GraphQLArguments
+objectArgs = sepEndBy1 objectArg (delim ',')
+
+objectArg :: Parser GraphQLArgument
+objectArg = (,) <$> name <*> graphQlTypeName
+  where
+    name = symbolName <* delim ':'
 
 -- Scalar
 
