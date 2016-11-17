@@ -8,7 +8,7 @@ import           Text.ParserCombinators.Parsec
 data GraphQLStatement
   = EnumDefinition GraphQLTypeName GraphQLEnumNames
   | InterfaceDefinition GraphQLTypeName GraphQLObjectArguments
-  | ObjectDefinition GraphQLTypeName String GraphQLObjectArguments
+  | ObjectDefinition GraphQLTypeName GraphQLTypeName GraphQLObjectArguments
   | ScalarDefinition GraphQLTypeName
   | UnionDefinition GraphQLTypeName GraphQLTypeNames
 
@@ -18,7 +18,7 @@ data GraphQLType
   | GraphQLTypeList GraphQLType
   | GraphQLTypeInt
   | GraphQLTypeString
-  | GraphQLTypeUser String
+  | GraphQLTypeUser GraphQLTypeName
 
 type GraphQLTypeName = String
 type GraphQLTypeNames = [GraphQLTypeName]
@@ -48,7 +48,7 @@ enumDefinition = EnumDefinition <$> name <*> symbols
     name = keyword "enum" *> typeName
     symbols = braces enumSymbols
 
-enumSymbols :: Parser [String]
+enumSymbols :: Parser GraphQLEnumNames
 enumSymbols = sepEndBy1 enumName spaces
 
 -- Interface
@@ -69,18 +69,18 @@ objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
     ifname = option [] $ keyword "implements" *> typeName
     otypes = braces objectTypes
 
-objectArgs :: Parser [(String, GraphQLType)]
+objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
-objectArg :: Parser (String, GraphQLType)
+objectArg :: Parser GraphQLArgument
 objectArg = (,) <$> name <*> graphQlTypeName
   where
     name = symbolName <* delim ':'
 
-objectTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
+objectTypes :: Parser GraphQLObjectArguments
 objectTypes = sepEndBy1 objectType spaces
 
-objectType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
+objectType :: Parser GraphQLObjectArgument
 objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
   where
     name = symbolName
@@ -130,13 +130,13 @@ delim c = spaces *> char c *> spaces
 
 -- Patterns (no "spaces"!)
 
-typeNameP :: Parser String
+typeNameP :: Parser GraphQLTypeName
 typeNameP = (:) <$> upper <*> many alphaNum
 
-symbolNameP :: Parser String
+symbolNameP :: Parser GraphQLSymbolName
 symbolNameP = (:) <$> lower <*> many alphaNum
 
-enumNameP :: Parser String
+enumNameP :: Parser GraphQLEnumName
 enumNameP = many1 upper
 
 graphQlType :: Parser GraphQLType
