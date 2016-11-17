@@ -106,9 +106,10 @@ objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
 objectArg :: Parser GraphQLNode
-objectArg = GraphQLArgument <$> name <*> graphQlTypeName
+objectArg = GraphQLArgument <$> name <*> otype
   where
-    name = fieldName <* delim ':'
+    name = fieldName
+    otype = delim ':' *> graphQlTypeName
 
 -- Scalar
 
