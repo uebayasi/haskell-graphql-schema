@@ -134,11 +134,7 @@ typeArg = do
   return $ (name, gtype)
 
 typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
-typeTypes = do
-  spaces
-  types <- sepEndBy1 typeType spaces
-  spaces
-  return $ types
+typeTypes = spaces *> (sepEndBy1 typeType spaces) <* spaces
 
 typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
 typeType = do
@@ -160,76 +156,45 @@ typeType = do
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
-unionDefinition = do
-  keyword "union"
-  name <- typeName
-  spaces
-  char '='
-  spaces
-  utypes <- unionTypes
-  spaces
-  return $ UnionDefinition name utypes
+unionDefinition = UnionDefinition <$> name <*> utypes
+  where
+    name = keyword "union" *> typeName <* spaces <* (char '=') <* spaces
+    utypes = unionTypes <* spaces
 
 unionTypes :: Parser [String]
-unionTypes = do
-  spaces
-  utypes <- sepBy1 unionType (char '|')
-  spaces
-  return utypes
+unionTypes = spaces *> (sepBy1 unionType (char '|')) <* spaces
 
 unionType :: Parser String
-unionType = do
-  spaces
-  utype <- typeName
-  spaces
-  return utype
+unionType = spaces *> typeName <* spaces
 
 -- Common
 
 typeName :: Parser String
-typeName = do
-  first <- upper
-  rest <- many alphaNum
-  return $ first:rest
+typeName = (:) <$> upper <*> (many alphaNum)
 
 memberName :: Parser String
-memberName = do
-  first <- lower
-  rest <- many alphaNum
-  return $ first:rest
+memberName = (:) <$> lower <*> (many alphaNum)
 
 graphQlType :: Parser GraphQLType
 graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString <|> graphQlTypeUser
 
 graphQlTypeBoolean :: Parser GraphQLType
-graphQlTypeBoolean = do
-  string "Boolean"
-  return $ GraphQLTypeBoolean
+graphQlTypeBoolean = pure GraphQLTypeBoolean <$> (string "Boolean")
 
 graphQlTypeFloat :: Parser GraphQLType
-graphQlTypeFloat = do
-  string "Float"
-  return $ GraphQLTypeFloat
+graphQlTypeFloat = pure GraphQLTypeFloat <$> (string "Float")
 
 graphQlTypeInt :: Parser GraphQLType
-graphQlTypeInt = do
-  string "Int"
-  return $ GraphQLTypeInt
+graphQlTypeInt = pure GraphQLTypeInt <$> (string "Int")
 
 graphQlTypeList :: Parser GraphQLType
-graphQlTypeList = do
-  elem <- brackets graphQlType
-  return $ GraphQLTypeList elem
+graphQlTypeList = GraphQLTypeList <$> brackets graphQlType
 
 graphQlTypeString :: Parser GraphQLType
-graphQlTypeString = do
-  string "String"
-  return $ GraphQLTypeString
+graphQlTypeString = pure GraphQLTypeString <$> (string "String")
 
 graphQlTypeUser :: Parser GraphQLType
-graphQlTypeUser = do
-  name <- typeName
-  return $ GraphQLTypeUser name
+graphQlTypeUser = GraphQLTypeUser <$> typeName
 
 braces =
   between (char '{') (char '}')
