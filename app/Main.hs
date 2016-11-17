@@ -57,7 +57,7 @@ enumDefinition :: Parser GraphQLStatement
 enumDefinition = EnumDefinition <$> name <*> symbols
   where
     name = (keyword "enum") *> typeName
-    symbols = braces enumSymbols <* spaces
+    symbols = braces enumSymbols
 
 enumSymbols :: Parser [String]
 enumSymbols = spaces *> symbols <* spaces
@@ -70,8 +70,8 @@ interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> types
   where
     name = (keyword "interface") *> typeName
-    args = spaces *> (option [] $ parens typeArgs) <* spaces
-    types = spaces *> (braces typeTypes) <* spaces
+    args = option [] $ parens typeArgs
+    types = braces typeTypes
 
 -- Scalar
 
@@ -87,7 +87,7 @@ typeDefinition = TypeDefinition <$> name <*> ifname <*> types
   where
     name = (keyword "type") *> typeName
     ifname = option [] $ (keyword "implements") *> typeName
-    types = spaces *> (braces typeTypes) <* spaces
+    types = braces typeTypes
 
 typeArgs :: Parser [(String, GraphQLType)]
 typeArgs = spaces *> args <* spaces
@@ -109,9 +109,9 @@ typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
 typeType = (,,,) <$> name <*> args <*> gtype <*> nonnull
   where
     name = spaces *> symbolNameP <* spaces
-    args = spaces *> (option [] $ parens typeArgs) <* spaces <* (char ':') <* spaces
+    args = (option [] $ parens typeArgs) <* (char ':') <* spaces
     gtype = spaces *> graphQlType <* spaces
-    nonnull =  spaces *> (option False $ (char '!') *> pure True) <* spaces
+    nonnull = spaces *> (option False $ (char '!') *> pure True) <* spaces
 
 -- Union
 
