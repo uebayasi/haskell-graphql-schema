@@ -19,7 +19,7 @@ readSchema input = case parse graphQLStatements "GraphQL Schema" input of
       "Interface! name=" ++ name
     ScalarDefinition name:rest ->
       "Scalar! name=" ++ name
-    TypeDefinition name ifname _:rest ->
+    ObjectDefinition name ifname _:rest ->
       "Type! name=" ++ name ++ " ifname=" ++ ifname
     UnionDefinition name utypes:rest ->
       "Union! name=" ++ name ++ " utypes=" ++ joinNames '|' utypes
@@ -34,8 +34,8 @@ joinNames sep names =
 data GraphQLStatement
   = EnumDefinition GraphQLTypeName [GraphQLEnumName]
   | InterfaceDefinition GraphQLTypeName [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
+  | ObjectDefinition GraphQLTypeName String [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
   | ScalarDefinition GraphQLTypeName
-  | TypeDefinition GraphQLTypeName String [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
   | UnionDefinition GraphQLTypeName [GraphQLTypeName]
 
 data GraphQLType
@@ -58,8 +58,8 @@ graphQLStatements = statements statement
     statement
       =   enumDefinition
       <|> interfaceDefinition
+      <|> objectDefinition
       <|> scalarDefinition
-      <|> typeDefinition
       <|> unionDefinition
 
 -- Enum
@@ -76,11 +76,39 @@ enumSymbols = sepEndBy1 enumName spaces
 -- Interface
 
 interfaceDefinition :: Parser GraphQLStatement
-interfaceDefinition = InterfaceDefinition <$> name <*> types
+interfaceDefinition = InterfaceDefinition <$> name <*> itypes
   where
     name = keyword "interface" *> typeName
-    args = option [] $ parens typeArgs
-    types = braces typeTypes
+    args = option [] $ parens objectArgs
+    itypes = braces objectTypes
+
+-- Object
+
+objectDefinition :: Parser GraphQLStatement
+objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
+  where
+    name = keyword "type" *> typeName
+    ifname = option [] $ keyword "implements" *> typeName
+    otypes = braces objectTypes
+
+objectArgs :: Parser [(String, GraphQLType)]
+objectArgs = sepEndBy1 objectArg (delim ',')
+
+objectArg :: Parser (String, GraphQLType)
+objectArg = (,) <$> name <*> graphQlTypeName
+  where
+    name = symbolName <* delim ':'
+
+objectTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
+objectTypes = sepEndBy1 objectType spaces
+
+objectType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
+objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
+  where
+    name = symbolName
+    args = option [] $ parens objectArgs
+    otype = delim ':' *> graphQlTypeName
+    nonnull = option False $ delim '!' *> pure True
 
 -- Scalar
 
@@ -89,41 +117,13 @@ scalarDefinition = ScalarDefinition <$> name
   where
     name = keyword "scalar" *> typeName
 
--- Type
-
-typeDefinition :: Parser GraphQLStatement
-typeDefinition = TypeDefinition <$> name <*> ifname <*> types
-  where
-    name = keyword "type" *> typeName
-    ifname = option [] $ keyword "implements" *> typeName
-    types = braces typeTypes
-
-typeArgs :: Parser [(String, GraphQLType)]
-typeArgs = sepEndBy1 typeArg (delim ',')
-
-typeArg :: Parser (String, GraphQLType)
-typeArg = (,) <$> name <*> graphQlTypeName
-  where
-    name = symbolName <* delim ':'
-
-typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
-typeTypes = sepEndBy1 typeType spaces
-
-typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
-typeType = (,,,) <$> name <*> args <*> ttype <*> nonnull
-  where
-    name = symbolName
-    args = option [] $ parens typeArgs
-    ttype = delim ':' *> graphQlTypeName
-    nonnull = option False $ delim '!' *> pure True
-
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
-unionDefinition = UnionDefinition <$> name <*> types
+unionDefinition = UnionDefinition <$> name <*> utypes
   where
     name = keyword "union" *> typeName <* delim '='
-    types = sepBy1 typeName (delim '|')
+    utypes = sepBy1 typeName (delim '|')
 
 -- Common
 
@@ -162,7 +162,13 @@ enumNameP :: Parser String
 enumNameP = many1 upper
 
 graphQlType :: Parser GraphQLType
-graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString <|> graphQlTypeUser
+graphQlType
+  =   graphQlTypeBoolean
+  <|> graphQlTypeFloat
+  <|> graphQlTypeInt
+  <|> graphQlTypeList
+  <|> graphQlTypeString
+  <|> graphQlTypeUser
 
 graphQlTypeBoolean :: Parser GraphQLType
 graphQlTypeBoolean = pure GraphQLTypeBoolean <$> string "Boolean"
