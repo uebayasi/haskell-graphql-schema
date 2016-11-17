@@ -69,7 +69,6 @@ inputDefinition :: Parser GraphQLStatement
 inputDefinition = InputDefinition <$> name <*> itypes
   where
     name = keyword "input" typeName
-    args = optionList $ parens objectArgs
     itypes = braces objectTypes
 
 -- Interface
@@ -78,7 +77,6 @@ interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> itypes
   where
     name = keyword "interface" typeName
-    args = optionList $ parens objectArgs
     itypes = braces objectTypes
 
 -- Object
