@@ -18,6 +18,7 @@ data GraphQLType
   = GraphQLBoolean
   | GraphQLFloat
   | GraphQLList GraphQLType
+  | GraphQLID
   | GraphQLInt
   | GraphQLString
   | GraphQLUserType GraphQLName
@@ -154,6 +155,7 @@ graphQlTypeP :: Parser GraphQLType
 graphQlTypeP
   =   graphQlBooleanP
   <|> graphQlFloatP
+  <|> graphQlIDP
   <|> graphQlIntP
   <|> graphQlListP
   <|> graphQlStringP
@@ -164,6 +166,9 @@ graphQlBooleanP = pure GraphQLBoolean <$> string "Boolean"
 
 graphQlFloatP :: Parser GraphQLType
 graphQlFloatP = pure GraphQLFloat <$> string "Float"
+
+graphQlIDP :: Parser GraphQLType
+graphQlIDP = pure GraphQLID <$> string "ID"
 
 graphQlIntP :: Parser GraphQLType
 graphQlIntP = pure GraphQLInt <$> string "Int"
