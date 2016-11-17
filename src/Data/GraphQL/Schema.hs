@@ -28,7 +28,6 @@ data GraphQLName
 
 type GraphQLTypeName = String
 type GraphQLTypeNames = [GraphQLTypeName]
-type GraphQLSymbolName = String
 type GraphQLEnumNames = [GraphQLName]
 type GraphQLArgument = (GraphQLName, GraphQLType)
 type GraphQLArguments = [GraphQLArgument]
