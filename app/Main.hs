@@ -132,9 +132,14 @@ unionType = typeName
 typeName = spaces *> typeNameP <* spaces
 symbolName = spaces *> symbolNameP <* spaces
 
-braces = between (char '{') (char '}')
-brackets = between (char '[') (char ']')
-parens = between (char '(') (char ')')
+braces :: Parser a -> Parser a
+braces p = spaces *> (between (char '{') (char '}') p) <* spaces
+
+brackets :: Parser a -> Parser a
+brackets p = spaces *> (between (char '[') (char ']') p) <* spaces
+
+parens :: Parser a -> Parser a
+parens p = spaces *> (between (char '(') (char ')') p) <* spaces
 
 keyword :: String -> Parser ()
 keyword s = spaces *> (string s) *> spaces
