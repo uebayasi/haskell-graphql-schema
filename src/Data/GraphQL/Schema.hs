@@ -16,14 +16,9 @@ data GraphQLStatement
   | UnionDefinition GraphQLName GraphQLTypeNames
       deriving (Show)
 
-data GraphQLType
-  = GraphQLBoolean
-  | GraphQLFloat
-  | GraphQLList GraphQLType
-  | GraphQLID
-  | GraphQLInt
-  | GraphQLString
-  | GraphQLUserType GraphQLName
+data GraphQLNode
+  = GraphQLArgument GraphQLName GraphQLType
+  | GraphQLObjectField GraphQLName GraphQLArguments GraphQLType Bool
       deriving (Show)
 
 data GraphQLName
@@ -32,9 +27,14 @@ data GraphQLName
   | GraphQLTypeName String
       deriving (Show)
 
-data GraphQLNode
-  = GraphQLArgument GraphQLName GraphQLType
-  | GraphQLObjectField GraphQLName GraphQLArguments GraphQLType Bool
+data GraphQLType
+  = GraphQLBoolean
+  | GraphQLFloat
+  | GraphQLList GraphQLType
+  | GraphQLID
+  | GraphQLInt
+  | GraphQLString
+  | GraphQLUserType GraphQLName
       deriving (Show)
 
 type GraphQLTypeNames = [GraphQLName]
