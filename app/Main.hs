@@ -93,6 +93,7 @@ scalarDefinition :: Parser GraphQLStatement
 scalarDefinition = do
   keyword "scalar"
   name <- scalarName
+  spaces
   return $ ScalarDefinition name
 
 scalarName :: Parser String
