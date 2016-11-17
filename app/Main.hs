@@ -14,8 +14,8 @@ readSchema :: String -> String
 readSchema input = case parse graphQLStatements "GraphQL Schema" input of
   Left err -> "Error: " ++ show err
   Right val -> case val of
-    EnumDefinition name symbols:rest ->
-      "Enum! name=" ++ name ++ " symbols=" ++ joinNames ',' symbols
+    (EnumDefinition name symbols):rest ->
+      "Enum! name=" ++ name ++ " symbols=" ++ joinNames ',' (map (\(GraphQLEnumName n) -> n) symbols)
     InterfaceDefinition name _:rest ->
       "Interface! name=" ++ name
     ScalarDefinition name:rest ->

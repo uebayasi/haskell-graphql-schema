@@ -1,6 +1,8 @@
 module Data.GraphQL.Schema
     ( graphQLStatements
     , GraphQLStatement(..)
+    , GraphQLType(..)
+    , GraphQLName(..)
     ) where
 
 import           Text.ParserCombinators.Parsec
@@ -20,11 +22,13 @@ data GraphQLType
   | GraphQLString
   | GraphQLUserType GraphQLTypeName
 
+data GraphQLName
+  = GraphQLEnumName String
+
 type GraphQLTypeName = String
 type GraphQLTypeNames = [GraphQLTypeName]
 type GraphQLSymbolName = String
-type GraphQLEnumName = String
-type GraphQLEnumNames = [GraphQLEnumName]
+type GraphQLEnumNames = [GraphQLName]
 type GraphQLArgument = (GraphQLSymbolName, GraphQLType)
 type GraphQLArguments = [GraphQLArgument]
 type GraphQLObjectArgument = (GraphQLSymbolName, GraphQLArguments, GraphQLType, Bool)
@@ -136,8 +140,8 @@ typeNameP = (:) <$> upper <*> many alphaNum
 symbolNameP :: Parser GraphQLSymbolName
 symbolNameP = (:) <$> lower <*> many alphaNum
 
-enumNameP :: Parser GraphQLEnumName
-enumNameP = many1 upper
+enumNameP :: Parser GraphQLName
+enumNameP = GraphQLEnumName <$> many1 upper
 
 graphQlTypeP :: Parser GraphQLType
 graphQlTypeP
