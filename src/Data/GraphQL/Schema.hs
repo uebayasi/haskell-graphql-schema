@@ -2,9 +2,9 @@ module Data.GraphQL.Schema
   ( graphQLStatements
   , GraphQLStatement(..)
   , GraphQLArgument(..)
-  , GraphQLObjectField(..)
   , GraphQLEnumName(..)
   , GraphQLFieldName(..)
+  , GraphQLObjectField(..)
   , GraphQLTypeName(..)
   , GraphQLType(..)
   ) where
@@ -18,7 +18,7 @@ data GraphQLStatement
   | ObjectDefinition GraphQLTypeName (Maybe GraphQLTypeName) GraphQLObjectArguments
   | ScalarDefinition GraphQLTypeName
   | UnionDefinition GraphQLTypeName GraphQLTypeNames
-      deriving (Show)
+  deriving (Show)
 
 data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType deriving (Show)
 data GraphQLEnumName = GraphQLEnumName String deriving (Show)
@@ -39,7 +39,7 @@ data GraphQLType
   | GraphQLInt
   | GraphQLString
   | GraphQLUserType GraphQLTypeName
-      deriving (Show)
+  deriving (Show)
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = statements statement
