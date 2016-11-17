@@ -9,6 +9,7 @@ import           Text.ParserCombinators.Parsec
 
 data GraphQLStatement
   = EnumDefinition GraphQLName GraphQLEnumNames
+  | InputDefinition GraphQLName GraphQLObjectArguments
   | InterfaceDefinition GraphQLName GraphQLObjectArguments
   | ObjectDefinition GraphQLName (Maybe GraphQLName) GraphQLObjectArguments
   | ScalarDefinition GraphQLName
@@ -40,6 +41,7 @@ graphQLStatements = statements statement
   where
     statement
       =   enumDefinition
+      <|> inputDefinition
       <|> interfaceDefinition
       <|> objectDefinition
       <|> scalarDefinition
@@ -55,6 +57,15 @@ enumDefinition = EnumDefinition <$> name <*> symbols
 
 enumSymbols :: Parser GraphQLEnumNames
 enumSymbols = sepEndBy1 enumName spaces
+
+-- Input
+
+inputDefinition :: Parser GraphQLStatement
+inputDefinition = InputDefinition <$> name <*> itypes
+  where
+    name = keyword "input" *> typeName
+    args = option [] (parens objectArgs)
+    itypes = braces objectTypes
 
 -- Interface
 
