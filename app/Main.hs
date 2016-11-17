@@ -57,9 +57,7 @@ graphQLStatements = do
 
 enumDefinition :: Parser GraphQLStatement
 enumDefinition = do
-  spaces
-  string "enum"
-  spaces
+  keyword "enum"
   name <- enumName
   spaces
   symbols <- braces enumSymbols
@@ -80,9 +78,7 @@ enumSymbols = do
 
 interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = do
-  spaces
-  string "interface"
-  spaces
+  keyword "interface"
   name <- typeName
   spaces
   args <- option [] $ parens typeArgs
@@ -95,9 +91,7 @@ interfaceDefinition = do
 
 scalarDefinition :: Parser GraphQLStatement
 scalarDefinition = do
-  spaces
-  string "scalar"
-  spaces
+  keyword "scalar"
   name <- scalarName
   return $ ScalarDefinition name
 
@@ -108,14 +102,11 @@ scalarName = typeName
 
 typeDefinition :: Parser GraphQLStatement
 typeDefinition = do
-  spaces
-  string "type"
-  spaces
+  keyword "type"
   name <- typeName
   spaces
   ifname <- option [] $ do
-    string "implements"
-    spaces
+    keyword "implements"
     ifname <- typeName
     spaces
     return ifname
@@ -170,9 +161,7 @@ typeType = do
 
 unionDefinition :: Parser GraphQLStatement
 unionDefinition = do
-  spaces
-  string "union"
-  spaces
+  keyword "union"
   name <- typeName
   spaces
   char '='
@@ -250,3 +239,6 @@ brackets =
 
 parens =
   between (char '(') (char ')')
+
+keyword :: String -> Parser ()
+keyword s = spaces *> (string s) *> spaces
