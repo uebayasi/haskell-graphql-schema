@@ -53,9 +53,8 @@ type GraphQLArgument = (String, GraphQLType)
 type GraphQLArguments = [GraphQLArgument]
 
 graphQLStatements :: Parser [GraphQLStatement]
-graphQLStatements = statements
+graphQLStatements = statements statement
   where
-    statements = spaces *> (many statement) <* spaces
     statement
       =   enumDefinition
       <|> interfaceDefinition
@@ -132,6 +131,9 @@ typeName = spaces *> typeNameP <* spaces
 symbolName = spaces *> symbolNameP <* spaces
 enumName = spaces *> enumNameP <* spaces
 graphQlTypeName = spaces *> graphQlType <* spaces
+
+statements :: Parser a -> Parser [a]
+statements s = spaces *> (many s) <* spaces
 
 braces :: Parser a -> Parser a
 braces = between (delim '{') (delim '}')
