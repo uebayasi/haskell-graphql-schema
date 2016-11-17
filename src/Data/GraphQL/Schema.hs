@@ -1,8 +1,9 @@
 module Data.GraphQL.Schema
   ( graphQLStatements
   , GraphQLStatement(..)
-  , GraphQLType(..)
+  , GraphQLNode(..)
   , GraphQLName(..)
+  , GraphQLType(..)
   ) where
 
 import           Text.ParserCombinators.Parsec
