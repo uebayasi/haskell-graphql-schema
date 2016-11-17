@@ -16,6 +16,8 @@ readSchema input = case parse graphQLStatements "GraphQL Schema" input of
   Right val -> case val of
     (EnumDefinition (GraphQLTypeName name) symbols):rest ->
       "Enum! name=" ++ name ++ " symbols=" ++ joinNames ',' (map (\(GraphQLEnumName n) -> n) symbols)
+    InputDefinition (GraphQLTypeName name) _:rest ->
+      "Input! name=" ++ name
     InterfaceDefinition (GraphQLTypeName name) _:rest ->
       "Interface! name=" ++ name
     ScalarDefinition (GraphQLTypeName name):rest ->
