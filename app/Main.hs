@@ -32,11 +32,11 @@ joinNames sep names =
     first:rest -> first ++ (concat $ map ((:) sep) rest)
 
 data GraphQLStatement
-  = EnumDefinition String [String]
-  | InterfaceDefinition String [(String, [(String, GraphQLType)], GraphQLType, Bool)]
-  | ScalarDefinition String
-  | TypeDefinition String String [(String, [(String, GraphQLType)], GraphQLType, Bool)]
-  | UnionDefinition String [String]
+  = EnumDefinition GraphQLTypeName [GraphQLEnumName]
+  | InterfaceDefinition GraphQLTypeName [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
+  | ScalarDefinition GraphQLTypeName
+  | TypeDefinition GraphQLTypeName String [(GraphQLSymbolName, [(GraphQLSymbolName, GraphQLType)], GraphQLType, Bool)]
+  | UnionDefinition GraphQLTypeName [GraphQLTypeName]
 
 data GraphQLType
   = GraphQLTypeBoolean
@@ -46,10 +46,22 @@ data GraphQLType
   | GraphQLTypeString
   | GraphQLTypeUser String
 
+type GraphQLTypeName = String
+type GraphQLSymbolName = String
+type GraphQLEnumName = String
+type GraphQLArgument = (String, GraphQLType)
+type GraphQLArguments = [GraphQLArgument]
+
 graphQLStatements :: Parser [GraphQLStatement]
-graphQLStatements = spaces *> statements <* spaces
+graphQLStatements = statements
   where
-    statements = many $ enumDefinition <|> interfaceDefinition <|> scalarDefinition <|> typeDefinition <|> unionDefinition
+    statements = spaces *> (many statement) <* spaces
+    statement
+      =   enumDefinition
+      <|> interfaceDefinition
+      <|> scalarDefinition
+      <|> typeDefinition
+      <|> unionDefinition
 
 -- Enum
 
@@ -60,7 +72,7 @@ enumDefinition = EnumDefinition <$> name <*> symbols
     symbols = braces enumSymbols
 
 enumSymbols :: Parser [String]
-enumSymbols = sepEndBy1 (many1 upper) spaces
+enumSymbols = sepEndBy1 enumName spaces
 
 -- Interface
 
@@ -118,6 +130,7 @@ unionDefinition = UnionDefinition <$> name <*> types
 
 typeName = spaces *> typeNameP <* spaces
 symbolName = spaces *> symbolNameP <* spaces
+enumName = spaces *> enumNameP <* spaces
 graphQlTypeName = spaces *> graphQlType <* spaces
 
 braces :: Parser a -> Parser a
@@ -142,6 +155,9 @@ typeNameP = (:) <$> upper <*> (many alphaNum)
 
 symbolNameP :: Parser String
 symbolNameP = (:) <$> lower <*> (many alphaNum)
+
+enumNameP :: Parser String
+enumNameP = many1 upper
 
 graphQlType :: Parser GraphQLType
 graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString <|> graphQlTypeUser
