@@ -56,11 +56,8 @@ graphQLStatements = spaces *> statements <* spaces
 enumDefinition :: Parser GraphQLStatement
 enumDefinition = EnumDefinition <$> name <*> symbols
   where
-    name = (keyword "enum") *> enumName <* spaces
+    name = (keyword "enum") *> typeName
     symbols = braces enumSymbols <* spaces
-
-enumName :: Parser String
-enumName = typeName
 
 enumSymbols :: Parser [String]
 enumSymbols = spaces *> symbols <* spaces
@@ -72,7 +69,7 @@ enumSymbols = spaces *> symbols <* spaces
 interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> types
   where
-    name = (keyword "interface") *> typeName <* spaces
+    name = (keyword "interface") *> typeName
     args = spaces *> (option [] $ parens typeArgs) <* spaces
     types = spaces *> (braces typeTypes) <* spaces
 
@@ -81,18 +78,15 @@ interfaceDefinition = InterfaceDefinition <$> name <*> types
 scalarDefinition :: Parser GraphQLStatement
 scalarDefinition = ScalarDefinition <$> name
   where
-    name = (keyword "scalar") *> scalarName <* spaces
-
-scalarName :: Parser String
-scalarName = typeName
+    name = (keyword "scalar") *> typeName
 
 -- Type
 
 typeDefinition :: Parser GraphQLStatement
 typeDefinition = TypeDefinition <$> name <*> ifname <*> types
   where
-    name = (keyword "type") *> spaces *> typeName <* spaces
-    ifname = option [] $ (keyword "implements") *> typeName <* spaces
+    name = (keyword "type") *> typeName
+    ifname = option [] $ (keyword "implements") *> typeName
     types = spaces *> (braces typeTypes) <* spaces
 
 typeArgs :: Parser [(String, GraphQLType)]
@@ -103,7 +97,7 @@ typeArgs = spaces *> args <* spaces
 typeArg :: Parser (String, GraphQLType)
 typeArg = (,) <$> name <*> gtype
   where
-    name = spaces *> memberName <* spaces <* (char ':') <* spaces
+    name = spaces *> symbolNameP <* spaces <* (char ':') <* spaces
     gtype = spaces *> graphQlType <* spaces
 
 typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
@@ -114,7 +108,7 @@ typeTypes = spaces *> types <* spaces
 typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
 typeType = (,,,) <$> name <*> args <*> gtype <*> nonnull
   where
-    name = spaces *> memberName <* spaces
+    name = spaces *> symbolNameP <* spaces
     args = spaces *> (option [] $ parens typeArgs) <* spaces <* (char ':') <* spaces
     gtype = spaces *> graphQlType <* spaces
     nonnull =  spaces *> (option False $ (char '!') *> pure True) <* spaces
@@ -124,36 +118,34 @@ typeType = (,,,) <$> name <*> args <*> gtype <*> nonnull
 unionDefinition :: Parser GraphQLStatement
 unionDefinition = UnionDefinition <$> name <*> utypes
   where
-    name = (keyword "union") *> typeName <* spaces <* (char '=') <* spaces
+    name = (keyword "union") *> typeName <* (char '=') <* spaces
     utypes = spaces *> unionTypes <* spaces
 
 unionTypes :: Parser [String]
 unionTypes = sepBy1 unionType (char '|')
 
 unionType :: Parser String
-unionType = spaces *> typeName <* spaces
+unionType = typeName
 
 -- Common
 
-braces =
-  between (char '{') (char '}')
+typeName = spaces *> typeNameP <* spaces
+symbolName = spaces *> symbolNameP <* spaces
 
-brackets =
-  between (char '[') (char ']')
-
-parens =
-  between (char '(') (char ')')
+braces = between (char '{') (char '}')
+brackets = between (char '[') (char ']')
+parens = between (char '(') (char ')')
 
 keyword :: String -> Parser ()
 keyword s = spaces *> (string s) *> spaces
 
 -- Patterns (no "spaces"!)
 
-typeName :: Parser String
-typeName = (:) <$> upper <*> (many alphaNum)
+typeNameP :: Parser String
+typeNameP = (:) <$> upper <*> (many alphaNum)
 
-memberName :: Parser String
-memberName = (:) <$> lower <*> (many alphaNum)
+symbolNameP :: Parser String
+symbolNameP = (:) <$> lower <*> (many alphaNum)
 
 graphQlType :: Parser GraphQLType
 graphQlType = graphQlTypeBoolean <|> graphQlTypeFloat <|> graphQlTypeInt <|> graphQlTypeList <|> graphQlTypeString <|> graphQlTypeUser
@@ -174,4 +166,4 @@ graphQlTypeString :: Parser GraphQLType
 graphQlTypeString = pure GraphQLTypeString <$> (string "String")
 
 graphQlTypeUser :: Parser GraphQLType
-graphQlTypeUser = GraphQLTypeUser <$> typeName
+graphQlTypeUser = GraphQLTypeUser <$> typeNameP
