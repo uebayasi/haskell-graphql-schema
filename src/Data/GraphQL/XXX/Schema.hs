@@ -1,4 +1,4 @@
-module Data.GraphQL.Schema
+module Data.GraphQL.XXX.Schema
   ( graphQLStatements
   , GraphQLStatement(..)
   , GraphQLArgument(..)
