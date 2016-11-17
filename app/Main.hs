@@ -92,12 +92,12 @@ typeDefinition = TypeDefinition <$> name <*> ifname <*> types
 typeArgs :: Parser [(String, GraphQLType)]
 typeArgs = spaces *> args <* spaces
   where
-    args = sepEndBy1 typeArg (spaces >> (char ',') >> spaces)
+    args = sepEndBy1 typeArg (delim ',')
 
 typeArg :: Parser (String, GraphQLType)
 typeArg = (,) <$> name <*> gtype
   where
-    name = spaces *> symbolNameP <* spaces <* (char ':') <* spaces
+    name = symbolName <* (delim ':')
     gtype = spaces *> graphQlType <* spaces
 
 typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
@@ -108,21 +108,21 @@ typeTypes = spaces *> types <* spaces
 typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
 typeType = (,,,) <$> name <*> args <*> gtype <*> nonnull
   where
-    name = spaces *> symbolNameP <* spaces
-    args = (option [] $ parens typeArgs) <* (char ':') <* spaces
+    name = symbolName
+    args = (option [] $ parens typeArgs) <* (delim ':')
     gtype = spaces *> graphQlType <* spaces
-    nonnull = spaces *> (option False $ (char '!') *> pure True) <* spaces
+    nonnull = spaces *> (option False $ (delim '!') *> pure True) <* spaces
 
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
 unionDefinition = UnionDefinition <$> name <*> utypes
   where
-    name = (keyword "union") *> typeName <* (char '=') <* spaces
+    name = (keyword "union") *> typeName <* (delim '=')
     utypes = spaces *> unionTypes <* spaces
 
 unionTypes :: Parser [String]
-unionTypes = sepBy1 unionType (char '|')
+unionTypes = sepBy1 unionType (delim '|')
 
 unionType :: Parser String
 unionType = typeName
@@ -133,16 +133,19 @@ typeName = spaces *> typeNameP <* spaces
 symbolName = spaces *> symbolNameP <* spaces
 
 braces :: Parser a -> Parser a
-braces p = spaces *> (between (char '{') (char '}') p) <* spaces
+braces = between (delim '{') (delim '}')
 
 brackets :: Parser a -> Parser a
-brackets p = spaces *> (between (char '[') (char ']') p) <* spaces
+brackets = between (delim '[') (delim ']')
 
 parens :: Parser a -> Parser a
-parens p = spaces *> (between (char '(') (char ')') p) <* spaces
+parens = between (delim '(') (delim ')')
 
 keyword :: String -> Parser ()
 keyword s = spaces *> (string s) *> spaces
+
+delim :: Char -> Parser ()
+delim c = spaces *> (char c) *> spaces
 
 -- Patterns (no "spaces"!)
 
