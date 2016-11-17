@@ -32,12 +32,15 @@ data GraphQLName
   | GraphQLTypeName String
       deriving (Show)
 
+data GraphQLNode
+  = GraphQLArgument GraphQLName GraphQLType
+  | GraphQLObjectField GraphQLName GraphQLArguments GraphQLType Bool
+      deriving (Show)
+
 type GraphQLTypeNames = [GraphQLName]
 type GraphQLEnumNames = [GraphQLName]
-type GraphQLArgument = (GraphQLName, GraphQLType)
-type GraphQLArguments = [GraphQLArgument]
-type GraphQLObjectArgument = (GraphQLName, GraphQLArguments, GraphQLType, Bool)
-type GraphQLObjectArguments = [GraphQLObjectArgument]
+type GraphQLArguments = [GraphQLNode]
+type GraphQLObjectArguments = [GraphQLNode]
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = statements statement
@@ -91,8 +94,8 @@ objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
 objectTypes :: Parser GraphQLObjectArguments
 objectTypes = sepEndBy1 objectType spaces
 
-objectType :: Parser GraphQLObjectArgument
-objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
+objectType :: Parser GraphQLNode
+objectType = GraphQLObjectField <$> name <*> args <*> otype <*> nonnull
   where
     name = fieldName
     args = optionList (parens objectArgs)
@@ -102,8 +105,8 @@ objectType = (,,,) <$> name <*> args <*> otype <*> nonnull
 objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
-objectArg :: Parser GraphQLArgument
-objectArg = (,) <$> name <*> graphQlTypeName
+objectArg :: Parser GraphQLNode
+objectArg = GraphQLArgument <$> name <*> graphQlTypeName
   where
     name = fieldName <* delim ':'
 
