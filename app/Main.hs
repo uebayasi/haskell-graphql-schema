@@ -95,10 +95,9 @@ typeArgs = spaces *> args <* spaces
     args = sepEndBy1 typeArg (delim ',')
 
 typeArg :: Parser (String, GraphQLType)
-typeArg = (,) <$> name <*> gtype
+typeArg = (,) <$> name <*> graphQlTypeName
   where
     name = symbolName <* (delim ':')
-    gtype = spaces *> graphQlType <* spaces
 
 typeTypes :: Parser [(String, [(String, GraphQLType)], GraphQLType, Bool)]
 typeTypes = spaces *> types <* spaces
@@ -106,31 +105,26 @@ typeTypes = spaces *> types <* spaces
     types = sepEndBy1 typeType spaces
 
 typeType :: Parser (String, [(String, GraphQLType)], GraphQLType, Bool)
-typeType = (,,,) <$> name <*> args <*> gtype <*> nonnull
+typeType = (,,,) <$> name <*> args <*> ttype <*> nonnull
   where
     name = symbolName
-    args = (option [] $ parens typeArgs) <* (delim ':')
-    gtype = spaces *> graphQlType <* spaces
-    nonnull = spaces *> (option False $ (delim '!') *> pure True) <* spaces
+    args = option [] $ parens typeArgs
+    ttype = (delim ':') *> graphQlTypeName
+    nonnull = option False $ (delim '!') *> pure True
 
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
-unionDefinition = UnionDefinition <$> name <*> utypes
+unionDefinition = UnionDefinition <$> name <*> types
   where
     name = (keyword "union") *> typeName <* (delim '=')
-    utypes = spaces *> unionTypes <* spaces
-
-unionTypes :: Parser [String]
-unionTypes = sepBy1 unionType (delim '|')
-
-unionType :: Parser String
-unionType = typeName
+    types = sepBy1 typeName (delim '|')
 
 -- Common
 
 typeName = spaces *> typeNameP <* spaces
 symbolName = spaces *> symbolNameP <* spaces
+graphQlTypeName = spaces *> graphQlType <* spaces
 
 braces :: Parser a -> Parser a
 braces = between (delim '{') (delim '}')
