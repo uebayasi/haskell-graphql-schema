@@ -1,5 +1,6 @@
 module Main where
 
+import           Data.GraphQL.Schema
 import           Lib
 import           System.Environment
 import           Text.ParserCombinators.Parsec
