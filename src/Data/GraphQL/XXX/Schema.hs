@@ -128,7 +128,7 @@ graphQlTypeName :: Parser GraphQLType
 graphQlTypeName = spaces *> graphQlTypeP <* spaces
 
 statements :: Parser a -> Parser [a]
-statements s = spaces *> (many s) <* spaces
+statements s = spaces *> many s <* spaces
 
 typeDecl :: String -> Parser GraphQLTypeName
 typeDecl kw = keyword kw typeName
@@ -146,7 +146,7 @@ delim :: Char -> Parser ()
 delim c = spaces *> char c *> spaces
 
 optionList :: Parser [a] -> Parser [a]
-optionList p = option [] p
+optionList = option []
 
 optionBool :: Parser a -> Parser Bool
 optionBool p = option False (p *> pure True)
