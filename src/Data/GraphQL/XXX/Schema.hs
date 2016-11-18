@@ -68,47 +68,47 @@ enumSymbols = sepEndBy1 enumName spaces
 -- Input
 
 inputDefinition :: Parser GraphQLStatement
-inputDefinition = InputDefinition <$> name <*> itypes
+inputDefinition = InputDefinition <$> name <*> fields
   where
     name = keyword "input" typeName
-    itypes = braces objectFields
+    fields = braces objectFields
 
 -- Interface
 
 interfaceDefinition :: Parser GraphQLStatement
-interfaceDefinition = InterfaceDefinition <$> name <*> itypes
+interfaceDefinition = InterfaceDefinition <$> name <*> fields
   where
     name = keyword "interface" typeName
-    itypes = braces objectFields
+    fields = braces objectFields
 
 -- Object
 
 objectDefinition :: Parser GraphQLStatement
-objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
+objectDefinition = ObjectDefinition <$> name <*> ifname <*> fields
   where
     name = keyword "type" typeName
     ifname = optionMaybe $ keyword "implements" typeName
-    otypes = braces objectFields
+    fields = braces objectFields
 
 objectFields :: Parser GraphQLFields
 objectFields = sepEndBy1 objectField spaces
 
 objectField :: Parser GraphQLField
-objectField = GraphQLField <$> name <*> args <*> otype <*> nonnull
+objectField = GraphQLField <$> name <*> args <*> type' <*> nonnull
   where
     name = fieldName
     args = optionList $ parens objectArgs
-    otype = delim ':' *> graphQlTypeName
+    type' = delim ':' *> graphQlTypeName
     nonnull = optionBool $ delim '!'
 
 objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
 objectArg :: Parser GraphQLArgument
-objectArg = GraphQLArgument <$> name <*> otype
+objectArg = GraphQLArgument <$> name <*> type'
   where
     name = fieldName
-    otype = delim ':' *> graphQlTypeName
+    type' = delim ':' *> graphQlTypeName
 
 -- Scalar
 
@@ -120,10 +120,10 @@ scalarDefinition = ScalarDefinition <$> name
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
-unionDefinition = UnionDefinition <$> name <*> utypes
+unionDefinition = UnionDefinition <$> name <*> types
   where
     name = keyword "union" typeName <* delim '='
-    utypes = sepBy1 typeName (delim '|')
+    types = sepBy1 typeName (delim '|')
 
 -- Common
 
