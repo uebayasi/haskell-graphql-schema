@@ -170,22 +170,22 @@ graphQlTypeP
   <|> graphQlUserTypeP
 
 graphQlBooleanP :: Parser GraphQLType
-graphQlBooleanP = try (pure GraphQLBoolean <$> string "Boolean") <?> "Boolean"
+graphQlBooleanP = pure GraphQLBoolean <$> try (string "Boolean") <?> "Boolean"
 
 graphQlFloatP :: Parser GraphQLType
-graphQlFloatP = try (pure GraphQLFloat <$> string "Float") <?> "Float"
+graphQlFloatP = pure GraphQLFloat <$> try (string "Float") <?> "Float"
 
 graphQlIDP :: Parser GraphQLType
-graphQlIDP = try (pure GraphQLID <$> string "ID") <?> "ID"
+graphQlIDP = pure GraphQLID <$> try (string "ID") <?> "ID"
 
 graphQlIntP :: Parser GraphQLType
-graphQlIntP = try (pure GraphQLInt <$> string "Int") <?> "Int"
+graphQlIntP = pure GraphQLInt <$> try (string "Int") <?> "Int"
 
 graphQlListP :: Parser GraphQLType
-graphQlListP = try (GraphQLList <$> between (char '[') (char ']') graphQlTypeP) <?> "List"
+graphQlListP = GraphQLList <$> between (char '[') (char ']') graphQlTypeP <?> "List"
 
 graphQlStringP :: Parser GraphQLType
-graphQlStringP = try (pure GraphQLString <$> string "String") <?> "String"
+graphQlStringP = pure GraphQLString <$> try (string "String") <?> "String"
 
 graphQlUserTypeP :: Parser GraphQLType
-graphQlUserTypeP = try (GraphQLUserType <$> typeNameP) <?> "User-type"
+graphQlUserTypeP = GraphQLUserType <$> try typeNameP <?> "User-type"
