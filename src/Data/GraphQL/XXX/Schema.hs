@@ -9,6 +9,7 @@ module Data.GraphQL.XXX.Schema
   , GraphQLType(..)
   ) where
 
+import           Debug.Trace                   (trace)
 import           Text.ParserCombinators.Parsec
 
 data GraphQLStatement
@@ -147,6 +148,12 @@ optionList = option []
 
 optionBool :: Parser a -> Parser Bool
 optionBool p = option False (p *> pure True)
+
+dump :: Int -> Parser ()
+dump n = do
+  s <- getParserState
+  let msg = show $ take n (stateInput s)
+  trace msg $ return ()
 
 -- Patterns (no "spaces"!)
 
