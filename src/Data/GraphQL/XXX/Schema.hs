@@ -71,7 +71,7 @@ inputDefinition :: Parser GraphQLStatement
 inputDefinition = InputDefinition <$> name <*> itypes
   where
     name = keyword "input" typeName
-    itypes = braces objectTypes
+    itypes = braces objectFields
 
 -- Interface
 
@@ -79,7 +79,7 @@ interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> itypes
   where
     name = keyword "interface" typeName
-    itypes = braces objectTypes
+    itypes = braces objectFields
 
 -- Object
 
@@ -88,13 +88,13 @@ objectDefinition = ObjectDefinition <$> name <*> ifname <*> otypes
   where
     name = keyword "type" typeName
     ifname = optionMaybe $ keyword "implements" typeName
-    otypes = braces objectTypes
+    otypes = braces objectFields
 
-objectTypes :: Parser GraphQLFields
-objectTypes = sepEndBy1 objectType spaces
+objectFields :: Parser GraphQLFields
+objectFields = sepEndBy1 objectField spaces
 
-objectType :: Parser GraphQLField
-objectType = GraphQLField <$> name <*> args <*> otype <*> nonnull
+objectField :: Parser GraphQLField
+objectField = GraphQLField <$> name <*> args <*> otype <*> nonnull
   where
     name = fieldName
     args = optionList $ parens objectArgs
