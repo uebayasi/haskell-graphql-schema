@@ -182,7 +182,7 @@ graphQlIntP :: Parser GraphQLType
 graphQlIntP = try (pure GraphQLInt <$> string "Int") <?> "Int"
 
 graphQlListP :: Parser GraphQLType
-graphQlListP = try (GraphQLList <$> between (char '(') (char ')') graphQlTypeP) <?> "List"
+graphQlListP = try (GraphQLList <$> between (char '[') (char ']') graphQlTypeP) <?> "List"
 
 graphQlStringP :: Parser GraphQLType
 graphQlStringP = try (pure GraphQLString <$> string "String") <?> "String"
