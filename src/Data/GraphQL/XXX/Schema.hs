@@ -94,21 +94,16 @@ objectFields :: Parser GraphQLFields
 objectFields = sepEndBy1 objectField spaces
 
 objectField :: Parser GraphQLField
-objectField = GraphQLField <$> name <*> args <* delim ':' <*> type' <*> nonnull
+objectField = GraphQLField <$> fieldName <*> args <* delim ':' <*> graphQlTypeName <*> nonnull
   where
-    name = fieldName
     args = optionList $ parens objectArgs
-    type' = graphQlTypeName
     nonnull = optionBool $ delim '!'
 
 objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
 objectArg :: Parser GraphQLArgument
-objectArg = GraphQLArgument <$> name <* delim ':' <*> type'
-  where
-    name = fieldName
-    type' = graphQlTypeName
+objectArg = GraphQLArgument <$> fieldName <* delim ':' <*> graphQlTypeName
 
 -- Scalar
 
