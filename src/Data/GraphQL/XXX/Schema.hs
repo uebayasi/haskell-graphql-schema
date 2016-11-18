@@ -61,8 +61,8 @@ enumDefinition = EnumDefinition <$> typeDecl "enum" <*> symbols
   where
     symbols = braces enumSymbols
 
-enumSymbols :: Parser GraphQLEnumNames
-enumSymbols = sepEndBy1 enumName spaces
+    enumSymbols :: Parser GraphQLEnumNames
+    enumSymbols = sepEndBy1 enumName spaces
 
 -- Input
 
@@ -88,18 +88,18 @@ objectDefinition = ObjectDefinition <$> typeDecl "type" <*> ifname <*> fields
 
 objectFields :: Parser GraphQLFields
 objectFields = sepEndBy1 objectField spaces
-
-objectField :: Parser GraphQLField
-objectField = GraphQLField <$> fieldName <*> args <* delim ':' <*> graphQlTypeName <*> nonnull
   where
-    args = optionList $ parens objectArgs
-    nonnull = optionBool $ delim '!'
+    objectField :: Parser GraphQLField
+    objectField = GraphQLField <$> fieldName <*> args <* delim ':' <*> graphQlTypeName <*> nonnull
+      where
+        args = optionList $ parens objectArgs
+        nonnull = optionBool $ delim '!'
 
-objectArgs :: Parser GraphQLArguments
-objectArgs = sepEndBy1 objectArg (delim ',')
-
-objectArg :: Parser GraphQLArgument
-objectArg = GraphQLArgument <$> fieldName <* delim ':' <*> graphQlTypeName
+        objectArgs :: Parser GraphQLArguments
+        objectArgs = sepEndBy1 objectArg (delim ',')
+          where
+            objectArg :: Parser GraphQLArgument
+            objectArg = GraphQLArgument <$> fieldName <* delim ':' <*> graphQlTypeName
 
 -- Scalar
 
