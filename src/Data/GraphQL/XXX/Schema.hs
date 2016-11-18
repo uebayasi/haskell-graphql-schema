@@ -57,9 +57,8 @@ graphQLStatements = statements statement
 -- Enum
 
 enumDefinition :: Parser GraphQLStatement
-enumDefinition = EnumDefinition <$> name <*> symbols
+enumDefinition = EnumDefinition <$> typeDecl "enum" <*> symbols
   where
-    name = typeDecl "enum"
     symbols = braces enumSymbols
 
 enumSymbols :: Parser GraphQLEnumNames
@@ -68,25 +67,22 @@ enumSymbols = sepEndBy1 enumName spaces
 -- Input
 
 inputDefinition :: Parser GraphQLStatement
-inputDefinition = InputDefinition <$> name <*> fields
+inputDefinition = InputDefinition <$> typeDecl "input" <*> fields
   where
-    name = typeDecl "input"
     fields = braces objectFields
 
 -- Interface
 
 interfaceDefinition :: Parser GraphQLStatement
-interfaceDefinition = InterfaceDefinition <$> name <*> fields
+interfaceDefinition = InterfaceDefinition <$> typeDecl "interface" <*> fields
   where
-    name = typeDecl "interface"
     fields = braces objectFields
 
 -- Object
 
 objectDefinition :: Parser GraphQLStatement
-objectDefinition = ObjectDefinition <$> name <*> ifname <*> fields
+objectDefinition = ObjectDefinition <$> typeDecl "type" <*> ifname <*> fields
   where
-    name = typeDecl "type"
     ifname = optionMaybe $ keyword "implements" typeName
     fields = braces objectFields
 
@@ -108,16 +104,13 @@ objectArg = GraphQLArgument <$> fieldName <* delim ':' <*> graphQlTypeName
 -- Scalar
 
 scalarDefinition :: Parser GraphQLStatement
-scalarDefinition = ScalarDefinition <$> name
-  where
-    name = typeDecl "scalar"
+scalarDefinition = ScalarDefinition <$> typeDecl "scalar"
 
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
-unionDefinition = UnionDefinition <$> name <* delim '=' <*> types
+unionDefinition = UnionDefinition <$> typeDecl "union" <* delim '=' <*> types
   where
-    name = typeDecl "union"
     types = sepBy1 typeName (delim '|')
 
 -- Common
