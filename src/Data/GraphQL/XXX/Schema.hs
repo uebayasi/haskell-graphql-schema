@@ -131,7 +131,7 @@ statements :: Parser a -> Parser [a]
 statements s = spaces *> many s <* spaces
 
 typeDecl :: String -> Parser GraphQLTypeName
-typeDecl kw = spaces *> string kw *> spaces *> typeName
+typeDecl kw = spaces *> try (string kw) *> spaces *> typeName
 
 braces :: Parser a -> Parser a
 braces = between (delim '{') (delim '}')
