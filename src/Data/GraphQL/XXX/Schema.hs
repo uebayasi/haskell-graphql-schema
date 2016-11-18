@@ -83,7 +83,7 @@ interfaceDefinition = InterfaceDefinition <$> typeDecl "interface" <*> fields
 objectDefinition :: Parser GraphQLStatement
 objectDefinition = ObjectDefinition <$> typeDecl "type" <*> ifname <*> fields
   where
-    ifname = optionMaybe $ keyword "implements" typeName
+    ifname = optionMaybe $ typeDecl "implements"
     fields = braces objectFields
 
 objectFields :: Parser GraphQLFields
@@ -131,16 +131,13 @@ statements :: Parser a -> Parser [a]
 statements s = spaces *> many s <* spaces
 
 typeDecl :: String -> Parser GraphQLTypeName
-typeDecl kw = keyword kw typeName
+typeDecl kw = spaces *> string kw *> spaces *> typeName
 
 braces :: Parser a -> Parser a
 braces = between (delim '{') (delim '}')
 
 parens :: Parser a -> Parser a
 parens = between (delim '(') (delim ')')
-
-keyword :: String -> Parser a -> Parser a
-keyword s p = spaces *> string s *> spaces *> p
 
 delim :: Char -> Parser ()
 delim c = spaces *> char c *> spaces
