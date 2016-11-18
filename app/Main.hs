@@ -19,4 +19,4 @@ showStatements statements =
   case statements of
     [] -> ""
     first:rest ->
-      (show first) ++ "\n" ++ (showStatements rest)
+      show first ++ "\n" ++ showStatements rest
