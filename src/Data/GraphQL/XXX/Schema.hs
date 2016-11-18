@@ -94,21 +94,21 @@ objectFields :: Parser GraphQLFields
 objectFields = sepEndBy1 objectField spaces
 
 objectField :: Parser GraphQLField
-objectField = GraphQLField <$> name <*> args <*> type' <*> nonnull
+objectField = GraphQLField <$> name <*> args <* delim ':' <*> type' <*> nonnull
   where
     name = fieldName
     args = optionList $ parens objectArgs
-    type' = delim ':' *> graphQlTypeName
+    type' = graphQlTypeName
     nonnull = optionBool $ delim '!'
 
 objectArgs :: Parser GraphQLArguments
 objectArgs = sepEndBy1 objectArg (delim ',')
 
 objectArg :: Parser GraphQLArgument
-objectArg = GraphQLArgument <$> name <*> type'
+objectArg = GraphQLArgument <$> name <* delim ':' <*> type'
   where
     name = fieldName
-    type' = delim ':' *> graphQlTypeName
+    type' = graphQlTypeName
 
 -- Scalar
 
@@ -120,9 +120,9 @@ scalarDefinition = ScalarDefinition <$> name
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
-unionDefinition = UnionDefinition <$> name <*> types
+unionDefinition = UnionDefinition <$> name <* delim '=' <*> types
   where
-    name = keyword "union" typeName <* delim '='
+    name = keyword "union" typeName
     types = sepBy1 typeName (delim '|')
 
 -- Common
