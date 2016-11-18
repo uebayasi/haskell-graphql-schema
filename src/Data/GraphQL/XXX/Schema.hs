@@ -59,7 +59,7 @@ graphQLStatements = statements statement
 enumDefinition :: Parser GraphQLStatement
 enumDefinition = EnumDefinition <$> name <*> symbols
   where
-    name = keyword "enum" typeName
+    name = typeDecl "enum"
     symbols = braces enumSymbols
 
 enumSymbols :: Parser GraphQLEnumNames
@@ -70,7 +70,7 @@ enumSymbols = sepEndBy1 enumName spaces
 inputDefinition :: Parser GraphQLStatement
 inputDefinition = InputDefinition <$> name <*> fields
   where
-    name = keyword "input" typeName
+    name = typeDecl "input"
     fields = braces objectFields
 
 -- Interface
@@ -78,7 +78,7 @@ inputDefinition = InputDefinition <$> name <*> fields
 interfaceDefinition :: Parser GraphQLStatement
 interfaceDefinition = InterfaceDefinition <$> name <*> fields
   where
-    name = keyword "interface" typeName
+    name = typeDecl "interface"
     fields = braces objectFields
 
 -- Object
@@ -86,7 +86,7 @@ interfaceDefinition = InterfaceDefinition <$> name <*> fields
 objectDefinition :: Parser GraphQLStatement
 objectDefinition = ObjectDefinition <$> name <*> ifname <*> fields
   where
-    name = keyword "type" typeName
+    name = typeDecl "type"
     ifname = optionMaybe $ keyword "implements" typeName
     fields = braces objectFields
 
@@ -110,14 +110,14 @@ objectArg = GraphQLArgument <$> fieldName <* delim ':' <*> graphQlTypeName
 scalarDefinition :: Parser GraphQLStatement
 scalarDefinition = ScalarDefinition <$> name
   where
-    name = keyword "scalar" typeName
+    name = typeDecl "scalar"
 
 -- Union
 
 unionDefinition :: Parser GraphQLStatement
 unionDefinition = UnionDefinition <$> name <* delim '=' <*> types
   where
-    name = keyword "union" typeName
+    name = typeDecl "union"
     types = sepBy1 typeName (delim '|')
 
 -- Common
@@ -136,6 +136,9 @@ graphQlTypeName = spaces *> graphQlTypeP <* spaces
 
 statements :: Parser a -> Parser [a]
 statements s = spaces *> (many s) <* spaces
+
+typeDecl :: String -> Parser GraphQLTypeName
+typeDecl kw = keyword kw typeName
 
 braces :: Parser a -> Parser a
 braces = between (delim '{') (delim '}')
