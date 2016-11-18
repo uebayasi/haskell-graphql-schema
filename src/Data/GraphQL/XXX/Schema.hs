@@ -145,9 +145,6 @@ statements s = spaces *> (many s) <* spaces
 braces :: Parser a -> Parser a
 braces = between (delim '{') (delim '}')
 
-brackets :: Parser a -> Parser a
-brackets = between (delim '[') (delim ']')
-
 parens :: Parser a -> Parser a
 parens = between (delim '(') (delim ')')
 
@@ -185,22 +182,22 @@ graphQlTypeP
   <|> graphQlUserTypeP
 
 graphQlBooleanP :: Parser GraphQLType
-graphQlBooleanP = (try $ pure GraphQLBoolean <$> string "Boolean") <?> "Boolean"
+graphQlBooleanP = try (pure GraphQLBoolean <$> string "Boolean") <?> "Boolean"
 
 graphQlFloatP :: Parser GraphQLType
-graphQlFloatP = (try $ pure GraphQLFloat <$> string "Float") <?> "Float"
+graphQlFloatP = try (pure GraphQLFloat <$> string "Float") <?> "Float"
 
 graphQlIDP :: Parser GraphQLType
-graphQlIDP = (try $ pure GraphQLID <$> string "ID") <?> "ID"
+graphQlIDP = try (pure GraphQLID <$> string "ID") <?> "ID"
 
 graphQlIntP :: Parser GraphQLType
-graphQlIntP = (try $ pure GraphQLInt <$> string "Int") <?> "Int"
+graphQlIntP = try (pure GraphQLInt <$> string "Int") <?> "Int"
 
 graphQlListP :: Parser GraphQLType
-graphQlListP = (try $ GraphQLList <$> brackets graphQlTypeP) <?> "List"
+graphQlListP = try (GraphQLList <$> between (char '(') (char ')') graphQlTypeP) <?> "List"
 
 graphQlStringP :: Parser GraphQLType
-graphQlStringP = (try $ pure GraphQLString <$> string "String") <?> "String"
+graphQlStringP = try (pure GraphQLString <$> string "String") <?> "String"
 
 graphQlUserTypeP :: Parser GraphQLType
-graphQlUserTypeP = (try $ GraphQLUserType <$> typeNameP) <?> "User-type"
+graphQlUserTypeP = try (GraphQLUserType <$> typeNameP) <?> "User-type"
