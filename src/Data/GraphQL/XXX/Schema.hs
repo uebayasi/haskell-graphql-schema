@@ -9,8 +9,9 @@ module Data.GraphQL.XXX.Schema
   , GraphQLType(..)
   ) where
 
-import           Debug.Trace                   (trace)
-import           Text.ParserCombinators.Parsec
+import           Debug.Trace        (trace)
+import           Text.Parsec
+import           Text.Parsec.String
 
 data GraphQLStatement
   = EnumDefinition GraphQLTypeName GraphQLEnumNames
