@@ -11,7 +11,7 @@ class Pretty a where
 graphQLPretty :: [GraphQLStatement] -> String
 graphQLPretty statements = render $ vcat (map pretty statements)
 
---
+{- GraphQLStatement -}
 
 instance Pretty GraphQLStatement where
   pretty (EnumDefinition (GraphQLTypeName t) ns)
@@ -45,16 +45,12 @@ instance Pretty GraphQLStatement where
     <+> text t
 
   pretty (UnionDefinition (GraphQLTypeName t) (GraphQLTypeName n:ns))
-    =   text "union"
-    <+> text t
-    <+> char '='
-    <+> text n
-    <+> hcat (restNames ns)
+    = text "union" <+> text t <+> char '=' <+> text n <+> hcat (restNames ns)
         where
             restNames = map ((char '|' <+>) . oneName)
             oneName (GraphQLTypeName t) = text t
 
---
+{- Other types -}
 
 prettyFields :: GraphQLFields -> Doc
 prettyFields fs = vcat (map pretty fs)
