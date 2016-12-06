@@ -9,41 +9,11 @@ module Data.GraphQL.XXX.Schema
   , GraphQLType(..)
   ) where
 
-import           Debug.Trace        (trace)
+import           Data.GraphQL.XXX.Schema.AST
+import           Data.GraphQL.XXX.Schema.Token
+import           Debug.Trace                   (trace)
 import           Text.Parsec
 import           Text.Parsec.String
-
-data GraphQLStatement
-  = EnumDefinition GraphQLTypeName GraphQLEnumNames
-  | InputDefinition GraphQLTypeName GraphQLFields
-  | InterfaceDefinition GraphQLTypeName GraphQLFields
-  | ObjectDefinition GraphQLTypeName (Maybe GraphQLTypeName) GraphQLFields
-  | ScalarDefinition GraphQLTypeName
-  | UnionDefinition GraphQLTypeName GraphQLTypeNames
-  deriving (Show)
-
-data GraphQLArgument = GraphQLArgument GraphQLFieldName GraphQLType deriving (Show)
-data GraphQLField = GraphQLField GraphQLFieldName GraphQLArguments GraphQLType Bool deriving (Show)
-
-type GraphQLArguments = [GraphQLArgument]
-type GraphQLFields = [GraphQLField]
-
-data GraphQLEnumName = GraphQLEnumName String deriving (Show)
-data GraphQLFieldName = GraphQLFieldName String deriving (Show)
-data GraphQLTypeName = GraphQLTypeName String deriving (Show)
-
-type GraphQLEnumNames = [GraphQLEnumName]
-type GraphQLTypeNames = [GraphQLTypeName]
-
-data GraphQLType
-  = GraphQLBoolean
-  | GraphQLFloat
-  | GraphQLList GraphQLType
-  | GraphQLID
-  | GraphQLInt
-  | GraphQLString
-  | GraphQLUserType GraphQLTypeName
-  deriving (Show)
 
 graphQLStatements :: Parser [GraphQLStatement]
 graphQLStatements = statements statement
@@ -88,7 +58,7 @@ objectDefinition = ObjectDefinition <$> typeDecl "type" <*> ifname <*> fields
     ifname = optionMaybe $ typeDecl "implements"
     fields = braces objectFields
 
-objectFields :: Parser GraphQLFields
+objectFields :: Parser [GraphQLField]
 objectFields = sepEndBy1 objectField spaces
   where
     objectField :: Parser GraphQLField
@@ -97,7 +67,7 @@ objectFields = sepEndBy1 objectField spaces
         args = optionList $ parens objectArgs
         nonnull = optionBool $ delim '!'
 
-        objectArgs :: Parser GraphQLArguments
+        objectArgs :: Parser [GraphQLArgument]
         objectArgs = sepEndBy1 objectArg (delim ',')
           where
             objectArg :: Parser GraphQLArgument
@@ -155,45 +125,3 @@ dump n = do
   s <- getParserState
   let msg = show $ take n (stateInput s)
   trace msg $ return ()
-
--- Patterns (no "spaces"!)
-
-enumNameP :: Parser GraphQLEnumName
-enumNameP = GraphQLEnumName <$> many1 upper
-
-fieldNameP :: Parser GraphQLFieldName
-fieldNameP = GraphQLFieldName <$> ((:) <$> lower <*> many alphaNum)
-
-typeNameP :: Parser GraphQLTypeName
-typeNameP = GraphQLTypeName <$> ((:) <$> upper <*> many alphaNum)
-
-graphQlTypeP :: Parser GraphQLType
-graphQlTypeP
-  =   graphQlBooleanP
-  <|> graphQlFloatP
-  <|> graphQlIDP
-  <|> graphQlIntP
-  <|> graphQlListP
-  <|> graphQlStringP
-  <|> graphQlUserTypeP
-
-graphQlBooleanP :: Parser GraphQLType
-graphQlBooleanP = pure GraphQLBoolean <$> try (string "Boolean") <?> "Boolean"
-
-graphQlFloatP :: Parser GraphQLType
-graphQlFloatP = pure GraphQLFloat <$> try (string "Float") <?> "Float"
-
-graphQlIDP :: Parser GraphQLType
-graphQlIDP = pure GraphQLID <$> try (string "ID") <?> "ID"
-
-graphQlIntP :: Parser GraphQLType
-graphQlIntP = pure GraphQLInt <$> try (string "Int") <?> "Int"
-
-graphQlListP :: Parser GraphQLType
-graphQlListP = GraphQLList <$> between (char '[') (char ']') graphQlTypeP <?> "List"
-
-graphQlStringP :: Parser GraphQLType
-graphQlStringP = pure GraphQLString <$> try (string "String") <?> "String"
-
-graphQlUserTypeP :: Parser GraphQLType
-graphQlUserTypeP = GraphQLUserType <$> try typeNameP <?> "User-type"
