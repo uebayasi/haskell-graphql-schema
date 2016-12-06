@@ -17,6 +17,8 @@ library
   hs-source-dirs:      src
   exposed-modules:     Data.GraphQL.XXX.Schema
                      , Data.GraphQL.XXX.Schema.AST
+                     , Data.GraphQL.XXX.Schema.Lexer
+                     , Data.GraphQL.XXX.Schema.Parser
                      , Data.GraphQL.XXX.Schema.Token
   build-depends:       base >= 4.7 && < 5
                      , parsec
