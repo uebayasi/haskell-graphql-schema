@@ -50,12 +50,9 @@ instance Pretty GraphQLStatement where
     <+> text t
     <+> char '='
     <+> text n
-    <+> restNames ns
+    <+> hcat (restNames ns)
         where
-            restNames names = case names of
-                []              -> empty
-                (GraphQLTypeName n:ns) ->
-                    char '|' <+> text n <+> restNames ns
+            restNames = map ((char '|' <+>) . (\(GraphQLTypeName t) -> text t))
 
 --
 
