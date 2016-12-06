@@ -19,9 +19,11 @@ library
                      , Data.GraphQL.XXX.Schema.AST
                      , Data.GraphQL.XXX.Schema.Lexer
                      , Data.GraphQL.XXX.Schema.Parser
+                     , Data.GraphQL.XXX.Schema.Pretty
                      , Data.GraphQL.XXX.Schema.Token
   build-depends:       base >= 4.7 && < 5
                      , parsec
+                     , pretty
   default-language:    Haskell2010
 
 executable graphql-schema-exe

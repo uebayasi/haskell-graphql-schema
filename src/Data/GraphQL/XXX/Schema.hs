@@ -1,5 +1,6 @@
 module Data.GraphQL.XXX.Schema
   ( graphQLStatements
+  , graphQLPretty
   , GraphQLStatement(..)
   , GraphQLArgument(..)
   , GraphQLField(..)
@@ -11,3 +12,4 @@ module Data.GraphQL.XXX.Schema
 
 import           Data.GraphQL.XXX.Schema.AST
 import           Data.GraphQL.XXX.Schema.Parser
+import           Data.GraphQL.XXX.Schema.Pretty
