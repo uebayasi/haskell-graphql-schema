@@ -14,39 +14,27 @@ graphQLPretty statements = render $ prettyStatements statements
         prettyStatements :: [GraphQLStatement] -> Doc
         prettyStatements statements = case statements of
             []           -> empty
-            (first:rest) -> prettyStatement first $$ prettyStatements rest
-
-prettyStatement :: GraphQLStatement -> Doc
-prettyStatement statement = case statement of
-    (EnumDefinition t ns)      -> prettyEnum t ns
-    (InputDefinition t fs)     -> prettyInput t fs
-    (InterfaceDefinition t fs) -> prettyInterface t fs
-    (ObjectDefinition t i fs)  -> prettyObject t i fs
-    (ScalarDefinition t)       -> prettyScalar t
-    (UnionDefinition t ns)     -> prettyUnion t ns
+            (first:rest) -> pretty first $$ prettyStatements rest
 
 --
 
-prettyEnum :: GraphQLTypeName -> GraphQLEnumNames -> Doc
-prettyEnum (GraphQLTypeName t) ns
+instance Pretty GraphQLStatement where
+  pretty (EnumDefinition (GraphQLTypeName t) ns)
     =  text "enum" <+> text t <+> lbrace
     $$ vcat (map (\(GraphQLEnumName e) -> nest 2 (text e)) ns)
     $$ rbrace
 
-prettyInput :: GraphQLTypeName -> GraphQLFields -> Doc
-prettyInput (GraphQLTypeName t) fs
+  pretty (InputDefinition (GraphQLTypeName t) fs)
     =  text "input" <+> text t <+> lbrace
     $$ prettyFields fs
     $$ rbrace
 
-prettyInterface :: GraphQLTypeName -> GraphQLFields -> Doc
-prettyInterface (GraphQLTypeName t) fs
+  pretty (InterfaceDefinition (GraphQLTypeName t) fs)
     =  text "interface" <+> text t <+> lbrace
     $$ prettyFields fs
     $$ rbrace
 
-prettyObject :: GraphQLTypeName -> Maybe GraphQLTypeName -> GraphQLFields -> Doc
-prettyObject (GraphQLTypeName t) i fs
+  pretty (ObjectDefinition (GraphQLTypeName t) i fs)
     =  text "type" <+> text t <+> implements <+> lbrace
     $$ prettyFields fs
     $$ rbrace
@@ -55,13 +43,11 @@ prettyObject (GraphQLTypeName t) i fs
                 Nothing                    -> empty
                 (Just (GraphQLTypeName t)) -> text "implements" <+> text t
 
-prettyScalar :: GraphQLTypeName -> Doc
-prettyScalar (GraphQLTypeName t)
+  pretty (ScalarDefinition (GraphQLTypeName t))
     =   text "scalar"
     <+> text t
 
-prettyUnion :: GraphQLTypeName -> GraphQLTypeNames -> Doc
-prettyUnion (GraphQLTypeName t) (GraphQLTypeName n:ns)
+  pretty (UnionDefinition (GraphQLTypeName t) (GraphQLTypeName n:ns))
     =   text "union"
     <+> text t
     <+> char '='
@@ -76,10 +62,10 @@ prettyUnion (GraphQLTypeName t) (GraphQLTypeName n:ns)
 --
 
 prettyFields :: GraphQLFields -> Doc
-prettyFields fs = vcat (map prettyField fs)
+prettyFields fs = vcat (map pretty fs)
 
-prettyField :: GraphQLField -> Doc
-prettyField (GraphQLField (GraphQLFieldName f) as t b) = nest 2 field
+instance Pretty GraphQLField where
+  pretty (GraphQLField (GraphQLFieldName f) as t b) = nest 2 field
     where
         field = text f <> prettyArguments as <> colon <+> pretty t <> exclamation
         exclamation = if b then char '!' else empty
@@ -87,12 +73,12 @@ prettyField (GraphQLField (GraphQLFieldName f) as t b) = nest 2 field
 prettyArguments :: GraphQLArguments -> Doc
 prettyArguments args = case args of
     [] -> empty
-    (a:as) -> lparen <> prettyArgument a <> vcat restArgs <> rparen
+    (a:as) -> lparen <> pretty a <> vcat restArgs <> rparen
         where
-            restArgs = map ((comma <+>) . prettyArgument) as
+            restArgs = map ((comma <+>) . pretty) as
 
-prettyArgument :: GraphQLArgument -> Doc
-prettyArgument (GraphQLArgument (GraphQLFieldName n) t) = text n <> colon <+> pretty t
+instance Pretty GraphQLArgument where
+    pretty (GraphQLArgument (GraphQLFieldName n) t) = text n <> colon <+> pretty t
 
 instance Pretty GraphQLType where
     pretty t = case t of
