@@ -15,12 +15,23 @@ graphQLPretty statements = render $ prettyStatements statements
 
 prettyStatement :: GraphQLStatement -> Doc
 prettyStatement statement = case statement of
-    (EnumDefinition t ns)      -> text "enum!"
+    (EnumDefinition t ns)      -> prettyEnum t ns
     (InputDefinition t fs)     -> text "input!"
     (InterfaceDefinition t fs) -> text "interface!"
     (ObjectDefinition t i fs)  -> text "object!"
-    (ScalarDefinition t)       -> text "scalar!"
+    (ScalarDefinition t)       -> prettyScalar t
     (UnionDefinition t ns)     -> prettyUnion t ns
+
+prettyEnum :: GraphQLTypeName -> GraphQLEnumNames -> Doc
+prettyEnum (GraphQLTypeName t) ns
+    =  text "enum" <+> text t <+> text "{"
+    $$ vcat (map (\(GraphQLEnumName e) -> nest 2 (text e)) ns)
+    $$ text "}"
+
+prettyScalar :: GraphQLTypeName -> Doc
+prettyScalar (GraphQLTypeName t)
+    =   text "scalar"
+    <+> text t
 
 prettyUnion :: GraphQLTypeName -> GraphQLTypeNames -> Doc
 prettyUnion (GraphQLTypeName t) (GraphQLTypeName n:ns)
