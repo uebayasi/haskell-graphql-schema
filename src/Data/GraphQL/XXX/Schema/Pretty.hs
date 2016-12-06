@@ -5,6 +5,9 @@ module Data.GraphQL.XXX.Schema.Pretty
 import           Data.GraphQL.XXX.Schema.AST
 import           Text.PrettyPrint
 
+class Pretty a where
+    pretty :: a -> Doc
+
 graphQLPretty :: [GraphQLStatement] -> String
 graphQLPretty statements = render $ prettyStatements statements
     where
@@ -78,7 +81,7 @@ prettyFields fs = vcat (map prettyField fs)
 prettyField :: GraphQLField -> Doc
 prettyField (GraphQLField (GraphQLFieldName f) as t b) = nest 2 field
     where
-        field = text f <> prettyArguments as <> colon <+> prettyType t <> exclamation
+        field = text f <> prettyArguments as <> colon <+> pretty t <> exclamation
         exclamation = if b then char '!' else empty
 
 prettyArguments :: GraphQLArguments -> Doc
@@ -89,14 +92,14 @@ prettyArguments args = case args of
             restArgs = map ((comma <+>) . prettyArgument) as
 
 prettyArgument :: GraphQLArgument -> Doc
-prettyArgument (GraphQLArgument (GraphQLFieldName n) t) = text n <> colon <+> prettyType t
+prettyArgument (GraphQLArgument (GraphQLFieldName n) t) = text n <> colon <+> pretty t
 
-prettyType :: GraphQLType -> Doc
-prettyType t = case t of
-    GraphQLBoolean                       -> text "Boolean"
-    GraphQLFloat                         -> text "Float"
-    GraphQLList t'                       -> lbrack <> prettyType t' <> rbrack
-    GraphQLID                            -> text "ID"
-    GraphQLInt                           -> text "Int"
-    GraphQLString                        -> text "String"
-    GraphQLUserType (GraphQLTypeName t') -> text t'
+instance Pretty GraphQLType where
+    pretty t = case t of
+        GraphQLBoolean                       -> text "Boolean"
+        GraphQLFloat                         -> text "Float"
+        GraphQLList t'                       -> lbrack <> pretty t' <> rbrack
+        GraphQLID                            -> text "ID"
+        GraphQLInt                           -> text "Int"
+        GraphQLString                        -> text "String"
+        GraphQLUserType (GraphQLTypeName t') -> text t'
