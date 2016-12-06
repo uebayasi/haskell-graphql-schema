@@ -12,9 +12,7 @@ graphQLPretty :: [GraphQLStatement] -> String
 graphQLPretty statements = render $ prettyStatements statements
     where
         prettyStatements :: [GraphQLStatement] -> Doc
-        prettyStatements statements = case statements of
-            []           -> empty
-            (first:rest) -> pretty first $$ prettyStatements rest
+        prettyStatements statements = vcat $ map pretty statements
 
 --
 
