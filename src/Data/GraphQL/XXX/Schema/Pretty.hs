@@ -9,18 +9,17 @@ class Pretty a where
     pretty :: a -> Doc
 
 graphQLPretty :: [GraphQLStatement] -> String
-graphQLPretty statements = render $ prettyStatements statements
-    where
-        prettyStatements :: [GraphQLStatement] -> Doc
-        prettyStatements statements = vcat $ map pretty statements
+graphQLPretty statements = render $ vcat (map pretty statements)
 
 --
 
 instance Pretty GraphQLStatement where
   pretty (EnumDefinition (GraphQLTypeName t) ns)
     =  text "enum" <+> text t <+> lbrace
-    $$ vcat (map (\(GraphQLEnumName e) -> nest 2 (text e)) ns)
+    $$ vcat (map oneName ns)
     $$ rbrace
+        where
+            oneName (GraphQLEnumName e) = nest 2 (text e)
 
   pretty (InputDefinition (GraphQLTypeName t) fs)
     =  text "input" <+> text t <+> lbrace
@@ -52,7 +51,8 @@ instance Pretty GraphQLStatement where
     <+> text n
     <+> hcat (restNames ns)
         where
-            restNames = map ((char '|' <+>) . (\(GraphQLTypeName t) -> text t))
+            restNames = map ((char '|' <+>) . oneName)
+            oneName (GraphQLTypeName t) = text t
 
 --
 
