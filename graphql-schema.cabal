@@ -16,14 +16,23 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Data.GraphQL.XXX.Schema
+                     , Data.GraphQL.XXX.Schema.Info
                      , Data.GraphQL.XXX.Schema.AST
                      , Data.GraphQL.XXX.Schema.Lexer
                      , Data.GraphQL.XXX.Schema.Parser
                      , Data.GraphQL.XXX.Schema.Pretty
                      , Data.GraphQL.XXX.Schema.Token
+                     , Data.GraphQL.XXX.Query
+                     , Data.GraphQL.XXX.Query.AST
+                     , Data.GraphQL.XXX.Query.Lexer
+                     , Data.GraphQL.XXX.Query.Parser
+                     , Data.GraphQL.XXX.Query.Pretty
+                     , Data.GraphQL.XXX.Query.Token
   build-depends:       base >= 4.7 && < 5
+                     , containers
                      , parsec
                      , pretty
+                     , mtl
   default-language:    Haskell2010
 
 executable graphql-schema-exe
