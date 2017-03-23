@@ -1,5 +1,6 @@
 module Data.GraphQL.XXX.Query where
 
+import           Data.Function                ((&))
 import           Debug.Trace
 
 import qualified Data.GraphQL.XXX.Query.AST   as Query
@@ -8,63 +9,49 @@ import qualified Data.GraphQL.XXX.Schema.Info as Info
 
 fixupQuery :: Info.SchemaInfo -> Query.Query -> Query.Query
 fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
-    Query.Query qt qfn qargs (fixupFields (fromQueryType qt) rootField qfs)
+    Query.Query qt qfn qargs (fixupFields (fromQueryType qt) qfs)
         where
-            rootField :: Query.Field
-            rootField = Query.FieldNode (Query.FieldName (Query.queryType2name qt)) [] qfs False
+            fixupFields :: Schema.TypeName -> [Query.Field] -> [Query.Field]
+            fixupFields stn =
+                map (fixupField stn)
 
-            fixupFields :: Schema.TypeName -> Query.Field -> [Query.Field] -> [Query.Field]
-            fixupFields stn pf =
-                map (fixupField stn pf)
-
-            fixupField :: Schema.TypeName -> Query.Field -> Query.Field -> Query.Field
-            fixupField stn pf qf@Query.Field{} =
+            fixupField :: Schema.TypeName -> Query.Field -> Query.Field
+            fixupField stn qf@Query.Field{} =
                 qf
 
-            fixupField stn pf qf@(Query.FieldNode ffn [] [] _) =
-                case lookupSchemaField ai stn ffn of
+            {- FieldNodes that don't have child fields are "Field" (not "FieldNode")
+            -}
+            fixupField stn qf@(Query.FieldNode ffn [] [] _) =
+                case lookupSchemaField stn ffn of
                     (Just fi) ->
-                        --trace ("fixupField: Field:\n pf=" ++ show pf ++ "\n stn=" ++ show stn ++ "\n qf=" ++ show (Query.Field ffn ft nn))
                         Query.Field ffn ft nn
                         where
                             ft = fromSchemaType (Schema.getFieldType fi)
-                            --ft = fromSchemaType (trace ("fi=" ++ show (Schema.getFieldType fi)) (Schema.getFieldType fi))
                             nn = Schema.getFieldNonnull fi
                     _ ->
-                        -- XXX
-                        -- XXX
-                        -- XXX
-                        trace ("fixupField: Field: XXX:\n pf=" ++ show pf ++ "\n stn=" ++ show stn ++ "\n qf=" ++ show qf)
-                            Query.Field ffn Query.String False -- XXX
-                        -- XXX
-                        -- XXX
-                        -- XXX
+                        Query.Field ffn Query.String False -- XXX
+                            & trace ("fixupField: Field: XXX:\n stn=" ++ show stn ++ "\n qf=" ++ show qf)
 
-            fixupField stn pf qf@(Query.FieldNode ffn fargs ffs _) =
-                case lookupSchemaField ai stn ffn of
+            {- FieldNodes that have child fields are "FieldNode" (not "Field")
+            -}
+            fixupField stn qf@(Query.FieldNode ffn fargs ffs _) =
+                case lookupSchemaField stn ffn of
                     (Just fi) ->
-                        case Schema.getFieldType fi of
-                            Schema.List (Schema.Object utn _ _) ->
-                                Query.FieldNode ffn fargs (fixupFields utn pf ffs) True
-                            Schema.List _ ->
-                                Query.FieldNode ffn fargs (fixupFields stn pf ffs) True
-                            Schema.Object utn _ _ ->
-                                Query.FieldNode ffn fargs (fixupFields utn pf ffs) False
-                            _ ->
-                                Query.FieldNode ffn fargs (fixupFields stn pf ffs) False
+                        Query.FieldNode ffn fargs (fixupFields stn' ffs) isList
+                        where
+                            (stn', isList) =
+                                case Schema.getFieldType fi of
+                                    Schema.List (Schema.Object utn _ _) -> (utn, True)
+                                    Schema.List _ -> (stn, True)
+                                    Schema.Object utn _ _ -> (utn, False)
+                                    _ -> (stn, False)
                     _ ->
-                        -- XXX
-                        -- XXX
-                        -- XXX
-                        trace ("fixupField: FieldNode: XXX:\n pf=" ++ show pf ++ "\n stn=" ++ show stn ++ "\n qf=" ++ show qf)
-                            Query.FieldNode ffn fargs (fixupFields stn pf ffs) False
-                        -- XXX
-                        -- XXX
-                        -- XXX
+                        Query.FieldNode ffn fargs (fixupFields stn ffs) False
+                            & trace ("fixupField: FieldNode: XXX:\n stn=" ++ show stn ++ "\n qf=" ++ show qf)
 
-            lookupSchemaField :: Info.SchemaInfo -> Schema.TypeName -> Query.FieldName -> Maybe Schema.Field
-            lookupSchemaField ai stn qfn =
-                Info.lookupField ai stn (Schema.FieldName (Query.getName qfn))
+            lookupSchemaField :: Schema.TypeName -> Query.FieldName -> Maybe Schema.Field
+            lookupSchemaField stn =
+                Info.lookupField ai stn . fromQueryFieldName
 
             fromSchemaType :: Schema.Type -> Query.Type
             fromSchemaType s =
@@ -78,7 +65,8 @@ fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
                     Schema.Enum (Schema.TypeName n) -> Query.UserType (Query.TypeName n)
                     Schema.Scalar (Schema.TypeName n) _ -> Query.String -- XXX Scalar
                     Schema.Object (Schema.TypeName n) _ _ -> Query.String
-                    _ -> trace ("XXX fromSchemaType: " ++ show s) Query.String
+                    _ -> Query.String
+                        & trace ("XXX fromSchemaType: " ++ show s)
                     -- XXX
                     -- XXX
                     -- XXX
@@ -86,3 +74,7 @@ fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
             fromQueryType :: Query.QueryType -> Schema.TypeName
             fromQueryType =
                 Schema.TypeName . Query.queryType2name
+
+            fromQueryFieldName :: Query.FieldName -> Schema.FieldName
+            fromQueryFieldName =
+                Schema.FieldName . Query.getName
