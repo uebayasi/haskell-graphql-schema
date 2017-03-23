@@ -1,13 +1,13 @@
 module Data.GraphQL.XXX.Schema
   ( graphQLStatements
   , graphQLPretty
-  , GraphQLStatement(..)
-  , GraphQLArgument(..)
-  , GraphQLField(..)
-  , GraphQLEnumName(..)
-  , GraphQLFieldName(..)
-  , GraphQLTypeName(..)
-  , GraphQLType(..)
+  , Statement(..)
+  , Argument(..)
+  , Field(..)
+  , EnumName(..)
+  , FieldName(..)
+  , TypeName(..)
+  , Type(..)
   ) where
 
 import           Data.GraphQL.XXX.Schema.AST

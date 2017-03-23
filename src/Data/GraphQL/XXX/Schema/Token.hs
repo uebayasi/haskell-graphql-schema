@@ -1,16 +1,9 @@
 module Data.GraphQL.XXX.Schema.Token
-  ( enumNameP
-  , fieldNameP
-  , typeNameP
-  , graphQlTypeP
-  , graphQlBooleanP
-  , graphQlFloatP
-  , graphQlIDP
-  , graphQlIntP
-  , graphQlListP
-  , graphQlStringP
-  , graphQlUserTypeP
-  ) where
+    ( enumNameP
+    , fieldNameP
+    , typeNameP
+    , graphQlTypeP
+    ) where
 
 import           Data.GraphQL.XXX.Schema.AST
 import           Text.Parsec
@@ -18,42 +11,62 @@ import           Text.Parsec.String
 
 -- Patterns (no "spaces"!)
 
-enumNameP :: Parser GraphQLEnumName
-enumNameP = GraphQLEnumName <$> many1 upper
+{- enumNameP
+-}
+enumNameP :: Parser EnumName
+enumNameP = EnumName <$> many1 upper
 
-fieldNameP :: Parser GraphQLFieldName
-fieldNameP = GraphQLFieldName <$> ((:) <$> lower <*> many alphaNum)
+{- fieldNameP
+-}
+fieldNameP :: Parser FieldName
+fieldNameP = FieldName <$> ((:) <$> lower <*> many alphaNum)
 
-typeNameP :: Parser GraphQLTypeName
-typeNameP = GraphQLTypeName <$> ((:) <$> upper <*> many alphaNum)
+{- typeNameP
+-}
+typeNameP :: Parser TypeName
+typeNameP
+    =   graphQlTypeNameQueryP
+    <|> graphQlTypeNameMutationP
+    <|> graphQlTypeNameP
 
-graphQlTypeP :: Parser GraphQLType
+graphQlTypeNameQueryP :: Parser TypeName
+graphQlTypeNameQueryP = pure TypeNameQuery <$> try (string "Query") <?> "Query"
+
+graphQlTypeNameMutationP :: Parser TypeName
+graphQlTypeNameMutationP = pure TypeNameMutation <$> try (string "Mutation") <?> "Mutation"
+
+graphQlTypeNameP :: Parser TypeName
+graphQlTypeNameP = TypeName <$> ((:) <$> upper <*> many alphaNum)
+
+{- graphQlTypeP
+-}
+graphQlTypeP :: Parser Type
 graphQlTypeP
-  =   graphQlBooleanP
-  <|> graphQlFloatP
-  <|> graphQlIDP
-  <|> graphQlIntP
-  <|> graphQlListP
-  <|> graphQlStringP
-  <|> graphQlUserTypeP
+    =   graphQlBooleanP
+    <|> graphQlFloatP
+    <|> graphQlIDP
+    <|> graphQlIntP
+    <|> graphQlListP
+    <|> graphQlStringP
+    <|> graphQlUserTypeP
 
-graphQlBooleanP :: Parser GraphQLType
-graphQlBooleanP = pure GraphQLBoolean <$> try (string "Boolean") <?> "Boolean"
+graphQlBooleanP :: Parser Type
+graphQlBooleanP = pure Boolean <$> try (string "Boolean") <?> "Boolean"
 
-graphQlFloatP :: Parser GraphQLType
-graphQlFloatP = pure GraphQLFloat <$> try (string "Float") <?> "Float"
+graphQlFloatP :: Parser Type
+graphQlFloatP = pure Float <$> try (string "Float") <?> "Float"
 
-graphQlIDP :: Parser GraphQLType
-graphQlIDP = pure GraphQLID <$> try (string "ID") <?> "ID"
+graphQlIDP :: Parser Type
+graphQlIDP = pure ID <$> try (string "ID") <?> "ID"
 
-graphQlIntP :: Parser GraphQLType
-graphQlIntP = pure GraphQLInt <$> try (string "Int") <?> "Int"
+graphQlIntP :: Parser Type
+graphQlIntP = pure Int <$> try (string "Int") <?> "Int"
 
-graphQlListP :: Parser GraphQLType
-graphQlListP = GraphQLList <$> between (char '[') (char ']') graphQlTypeP <?> "List"
+graphQlListP :: Parser Type
+graphQlListP = List <$> between (char '[') (char ']') graphQlTypeP <?> "List"
 
-graphQlStringP :: Parser GraphQLType
-graphQlStringP = pure GraphQLString <$> try (string "String") <?> "String"
+graphQlStringP :: Parser Type
+graphQlStringP = pure String <$> try (string "String") <?> "String"
 
-graphQlUserTypeP :: Parser GraphQLType
-graphQlUserTypeP = GraphQLUserType <$> try typeNameP <?> "User-type"
+graphQlUserTypeP :: Parser Type
+graphQlUserTypeP = (\x -> Object x (TypeName "*") False) <$> try typeNameP <?> "User-type"
