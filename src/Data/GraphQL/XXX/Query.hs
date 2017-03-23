@@ -8,27 +8,27 @@ import qualified Data.GraphQL.XXX.Schema.Info as Info
 
 fixupQuery :: Info.SchemaInfo -> Query.Query -> Query.Query
 fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
-    Query.Query qt qfn qargs (fixupFields rootField (queryType2SchemaType qt) qfs)
+    Query.Query qt qfn qargs (fixupFields (fromQueryType qt) rootField qfs)
         where
             rootField :: Query.Field
             rootField = Query.FieldNode (Query.FieldName (Query.queryType2name qt)) [] qfs False
 
-            fixupFields :: Query.Field -> Schema.TypeName -> [Query.Field] -> [Query.Field]
-            fixupFields pf stn =
-                map (fixupField pf stn)
+            fixupFields :: Schema.TypeName -> Query.Field -> [Query.Field] -> [Query.Field]
+            fixupFields stn pf =
+                map (fixupField stn pf)
 
-            fixupField :: Query.Field -> Schema.TypeName -> Query.Field -> Query.Field
-            fixupField pf stn qf@Query.Field{} =
+            fixupField :: Schema.TypeName -> Query.Field -> Query.Field -> Query.Field
+            fixupField stn pf qf@Query.Field{} =
                 qf
 
-            fixupField pf stn qf@(Query.FieldNode ffn [] [] _) =
+            fixupField stn pf qf@(Query.FieldNode ffn [] [] _) =
                 case lookupSchemaField ai stn ffn of
                     (Just fi) ->
                         --trace ("fixupField: Field:\n pf=" ++ show pf ++ "\n stn=" ++ show stn ++ "\n qf=" ++ show (Query.Field ffn ft nn))
                         Query.Field ffn ft nn
                         where
-                            ft = schemaType2QueryType (Schema.getFieldType fi)
-                            --ft = schemaType2QueryType (trace ("fi=" ++ show (Schema.getFieldType fi)) (Schema.getFieldType fi))
+                            ft = fromSchemaType (Schema.getFieldType fi)
+                            --ft = fromSchemaType (trace ("fi=" ++ show (Schema.getFieldType fi)) (Schema.getFieldType fi))
                             nn = Schema.getFieldNonnull fi
                     _ ->
                         -- XXX
@@ -40,24 +40,24 @@ fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
                         -- XXX
                         -- XXX
 
-            fixupField pf stn qf@(Query.FieldNode ffn fargs ffs _) =
+            fixupField stn pf qf@(Query.FieldNode ffn fargs ffs _) =
                 case lookupSchemaField ai stn ffn of
                     (Just fi) ->
                         case Schema.getFieldType fi of
                             Schema.List (Schema.Object utn _ _) ->
-                                Query.FieldNode ffn fargs (fixupFields pf utn ffs) True
+                                Query.FieldNode ffn fargs (fixupFields utn pf ffs) True
                             Schema.List _ ->
-                                Query.FieldNode ffn fargs (fixupFields pf stn ffs) True
+                                Query.FieldNode ffn fargs (fixupFields stn pf ffs) True
                             Schema.Object utn _ _ ->
-                                Query.FieldNode ffn fargs (fixupFields pf utn ffs) False
+                                Query.FieldNode ffn fargs (fixupFields utn pf ffs) False
                             _ ->
-                                Query.FieldNode ffn fargs (fixupFields pf stn ffs) False
+                                Query.FieldNode ffn fargs (fixupFields stn pf ffs) False
                     _ ->
                         -- XXX
                         -- XXX
                         -- XXX
                         trace ("fixupField: FieldNode: XXX:\n pf=" ++ show pf ++ "\n stn=" ++ show stn ++ "\n qf=" ++ show qf)
-                            Query.FieldNode ffn fargs (fixupFields pf stn ffs) False
+                            Query.FieldNode ffn fargs (fixupFields stn pf ffs) False
                         -- XXX
                         -- XXX
                         -- XXX
@@ -66,8 +66,8 @@ fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
             lookupSchemaField ai stn qfn =
                 Info.lookupField ai stn (Schema.FieldName (Query.getName qfn))
 
-            schemaType2QueryType :: Schema.Type -> Query.Type
-            schemaType2QueryType s =
+            fromSchemaType :: Schema.Type -> Query.Type
+            fromSchemaType s =
                 case s of
                     -- XXX
                     -- XXX
@@ -78,11 +78,11 @@ fixupQuery ai q@(Query.Query qt qfn qargs qfs) =
                     Schema.Enum (Schema.TypeName n) -> Query.UserType (Query.TypeName n)
                     Schema.Scalar (Schema.TypeName n) _ -> Query.String -- XXX Scalar
                     Schema.Object (Schema.TypeName n) _ _ -> Query.String
-                    _ -> trace ("XXX schemaType2QueryType: " ++ show s) Query.String
+                    _ -> trace ("XXX fromSchemaType: " ++ show s) Query.String
                     -- XXX
                     -- XXX
                     -- XXX
 
-            queryType2SchemaType :: Query.QueryType -> Schema.TypeName
-            queryType2SchemaType =
+            fromQueryType :: Query.QueryType -> Schema.TypeName
+            fromQueryType =
                 Schema.TypeName . Query.queryType2name
